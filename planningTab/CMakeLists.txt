@@ -12,7 +12,7 @@ if(WIN32)
   set (CMAKE_EXE_LINKER_FLAGS "/LTCG")
   set (CMAKE_MODULE_LINKER_FLAGS "/LTCG")
 else ()
-  set (CMAKE_INSTALL_PREFIX /usr/local )
+  set (CMAKE_INSTALL_PREFIX /usr )
   set (CMAKE_CXX_FLAGS "-g -O0 -Wall -Wextra -Wpointer-arith -fno-default-inline -fno-implicit-inline-templates -DwxUSE_THREADS -std=c++0x -fpermissive")
 endif()
 
