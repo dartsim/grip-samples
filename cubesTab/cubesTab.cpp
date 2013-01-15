@@ -122,7 +122,7 @@ GRIPTab(parent, id, pos, size, style) {
   ss2BoxS->Add(new wxButton(this, id_button_FrameForward, wxT("Forward")), 0, wxALL, 1);
   ss2BoxS->Add(new wxButton(this, id_button_FrameBackward, wxT("Backward")), 0, wxALL, 1);
   
-  // Play buttons
+  // Interactive buttons
   ss3BoxS->Add(new wxButton(this, id_button_ApplyForce1, wxT("Apply Force")), 0, wxALL, 1); 
   
   
@@ -152,7 +152,7 @@ void cubesTab::OnButton(wxCommandEvent & _evt) {
   
   switch( slnum ) {
     
-    // Add Floor for Hubo to fall on :)
+    // Add Floor for cubes to fall on
   case id_button_AddFloor: {
     addFloor();
   }

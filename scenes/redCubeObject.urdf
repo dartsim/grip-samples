@@ -1,0 +1,14 @@
+<!-- cubeObject.urdf -->
+
+<object name="redCube_111">
+
+	<!-- Link 0 -->
+	<link name="link_0">
+		<visual>
+			<geometry>
+				<mesh filename="objects/redCube_111.3ds"/>
+			</geometry>
+		</visual>
+	</link>
+
+</object>
