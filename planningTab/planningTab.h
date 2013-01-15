@@ -87,7 +87,7 @@ public:
 
   void addFloor();
   void settings();
-  void simulateSlider();
+  void simulate();
   void SetTimeline();
   void bake();
   void retrieveBakedState( int _frame );

@@ -66,7 +66,6 @@ using namespace std;
 // Planning and controller
 #include <planning/PathPlanner.h>
 #include <planning/Trajectory.h>
-
 #include "Controller.h"
 // **********************
 
@@ -113,8 +112,8 @@ planningTab::planningTab(wxWindow *parent, const wxWindowID id,
 
 	// Start - Stop buttons
 	ss1BoxS->Add(new wxButton(this, id_button_AddFloor, wxT("Add floor")), 0, wxALL, 1); 
-	ss1BoxS->Add(new wxButton(this, id_button_Planning, wxT("Init Planning")), 0, wxALL, 1); 
-	ss1BoxS->Add(new wxButton(this, id_button_StartSim, wxT("Stop Dynamic Sim")), 0, wxALL, 1); 
+	ss1BoxS->Add(new wxButton(this, id_button_Planning, wxT("Do Planning")), 0, wxALL, 1); 
+	ss1BoxS->Add(new wxButton(this, id_button_StartSim, wxT("Simulate")), 0, wxALL, 1); 
 
 	// Play buttons
 	ss2BoxS->Add(new wxButton(this, id_button_Play, wxT("Play")), 0, wxALL, 1); 
@@ -168,7 +167,7 @@ void planningTab::OnButton(wxCommandEvent & _evt) {
     
     // Start Dynamic Simulation
   case id_button_StartSim: {
-    simulateSlider();
+    simulate();
   }    
     break;
 
@@ -268,14 +267,15 @@ void planningTab::settings() {
 }
 
 /**
- * @function simulateSlider
+ * @function simulate
  */
-void planningTab::simulateSlider() {
+void planningTab::simulate() {
 
   double totalTime = 1.0;
   int counter = 0;
-  printf("INitial world time: %f \n", mWorld->mTime);
+  printf("Initial world time: %f \n", mWorld->mTime);
   int numIter = (mDisplayTimeout / 1000.0) / mWorld->mTimeStep;
+
   while( mWorld->mTime < totalTime ) {
 
     counter++;
@@ -284,6 +284,7 @@ void planningTab::simulateSlider() {
       mWorld->getSkeleton(0)->setInternalForces(mController->getTorques(mWorld->getRobot(0)->getPose(), mWorld->getRobot(0)->getQDotVector(), mWorld->mTime));
       mWorld->step();
     }
+
     mSimFrame += numIter;
 
     //bake();
