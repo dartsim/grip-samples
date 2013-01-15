@@ -13,13 +13,9 @@ if(WIN32)
   set (CMAKE_MODULE_LINKER_FLAGS "/LTCG")
 else ()
   set (CMAKE_INSTALL_PREFIX /usr )
-<<<<<<< HEAD
   #set (CMAKE_CXX_FLAGS "-g -O0 -Wall -Wextra -Wpointer-arith -fno-default-inline -fno-implicit-inline-templates -DwxUSE_THREADS -std=c++0x -fpermissive")
-
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2 -O3  -std=c++0x")
-=======
-  set (CMAKE_CXX_FLAGS "-g -O0 -Wall -Wextra -Wpointer-arith -fno-default-inline -fno-implicit-inline-templates -DwxUSE_THREADS -std=c++0x -fpermissive")
->>>>>>> 6fd6bce693e3e0e9097d1adb8cb4389a9b13f5d7
+
 endif()
 
 include (${CMAKE_INSTALL_PREFIX}/share/dart/DARTConfig.cmake)
