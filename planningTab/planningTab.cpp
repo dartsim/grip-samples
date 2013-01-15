@@ -137,7 +137,6 @@ planningTab::planningTab(wxWindow *parent, const wxWindowID id,
 	mMovieFrame = 0;
 	mDisplayTimeout = 1000.0 / 30.0;
 
-	printf("End Initialization \n");
 }
 
 
@@ -202,7 +201,7 @@ void planningTab::addFloor() {
   ground->setImmobileState( true );
   mWorld->addObject( ground );
   mWorld->rebuildCollision();
-  printf("Added Floor! Now creating tree from world \n");
+
   treeView->CreateFromWorld();
     
 }
@@ -229,7 +228,7 @@ void planningTab::settings() {
   mWorld->getRobot(0)->getDof(24)->setValue(20.0 * M_PI/180.0);
   mWorld->getRobot(0)->getDof(27)->setValue(-10.0 * M_PI/180.0);
   mWorld->getRobot(0)->getDof(28)->setValue(-10.0 * M_PI/180.0);
-  printf("Updating! \n");
+  
   mWorld->getRobot(0)->update();
   viewer->DrawGLScene();
   
@@ -271,9 +270,9 @@ void planningTab::settings() {
  */
 void planningTab::simulate() {
 
-  double totalTime = 1.0;
+  double totalTime = 2.0;
   int counter = 0;
-  printf("Initial world time: %f \n", mWorld->mTime);
+ 
   int numIter = (mDisplayTimeout / 1000.0) / mWorld->mTimeStep;
 
   while( mWorld->mTime < totalTime ) {
@@ -287,19 +286,19 @@ void planningTab::simulate() {
 
     mSimFrame += numIter;
 
-    //bake();
-    /*
+    bake();
+    
     for (int j = 0; j < mWorld->getNumRobots(); j++) {
       mWorld->getRobot(j)->update();
     }
     for (int j = 0; j < mWorld->getNumObjects(); j++) {
       mWorld->getObject(j)->update();
-      }*/
-    // viewer->DrawGLScene();
+      }
+     viewer->DrawGLScene();
   }
 
   printf("Entered in loop %d times \n", counter);
-  //SetTimeline();
+  SetTimeline();
 }
 
 /**
@@ -307,11 +306,11 @@ void planningTab::simulate() {
  */
 void planningTab::SetTimeline() {
 
-  double T = 1.0;
+  double T = 2.0;
 
   
   int numsteps = mBakedStates.size();
-  printf("Setting timeline for %d steps \n", numsteps );
+
   double increment = T/(double)numsteps;
 
   cout << "-->(+) Updating Timeline - Increment: " << increment << " Total T: " << T << " Steps: " << numsteps << endl;
@@ -367,22 +366,7 @@ void planningTab::retrieveBakedState( int _frame ) {
  * @brief Handles slider changes
  */
 void planningTab::OnSlider(wxCommandEvent &evt) {
-	if(selectedTreeNode==NULL){
-		return;
-	}
 
-	int slnum = evt.GetId();
-	double pos = *(double*) evt.GetClientData();
-	char numBuf[64];
-    numBuf[0] = '\0';
-	//sprintf(numBuf, "");
-
-    //cout << "got here" << endl;
-	//world->updateCollision(o);
-//	viewer->UpdateCamera();
-
-	if (frame != NULL)
-		frame->SetStatusText(wxString(numBuf, wxConvUTF8));
 }
 
 

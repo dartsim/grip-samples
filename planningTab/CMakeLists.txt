@@ -14,7 +14,7 @@ if(WIN32)
 else ()
   set (CMAKE_INSTALL_PREFIX /usr )
   #set (CMAKE_CXX_FLAGS "-g -O0 -Wall -Wextra -Wpointer-arith -fno-default-inline -fno-implicit-inline-templates -DwxUSE_THREADS -std=c++0x -fpermissive")
-#set (CMAKE_CXX_FLAGS "-O1 -std=c++11 -fpermissive")
+
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2 -O3  -std=c++0x")
 endif()
 
