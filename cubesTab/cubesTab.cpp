@@ -75,12 +75,7 @@ using namespace std;
 /** Events */
 enum DynamicSimulationTabEvents {
   id_button_AddFloor = 8345,
-  id_button_StartSim,
-  id_button_Planning,
-  id_button_Play,
-  id_button_FrameForward,
-  id_button_FrameBackward,
-  id_button_ApplyForce1
+  id_button_SetTimeline
 };
 
 /** Handler for events **/
@@ -104,43 +99,28 @@ GRIPTab(parent, id, pos, size, style) {
   
   // Create Static boxes (outline of your Tab)
   wxStaticBox* ss1Box = new wxStaticBox(this, -1, wxT("Simulation"));
-  wxStaticBox* ss2Box = new wxStaticBox(this, -1, wxT("Play Options"));
-  wxStaticBox* ss3Box = new wxStaticBox(this, -1, wxT("Interactive"));
   
   // Create sizers for these static boxes
   wxStaticBoxSizer* ss1BoxS = new wxStaticBoxSizer(ss1Box, wxVERTICAL);
-  wxStaticBoxSizer* ss2BoxS = new wxStaticBoxSizer(ss2Box, wxVERTICAL);
-  wxStaticBoxSizer* ss3BoxS = new wxStaticBoxSizer(ss3Box, wxVERTICAL);
   
-  // Start - Stop buttons
+  // Add Floor button
   ss1BoxS->Add(new wxButton(this, id_button_AddFloor, wxT("Add floor")), 0, wxALL, 1); 
-  ss1BoxS->Add(new wxButton(this, id_button_Planning, wxT("Do Planning")), 0, wxALL, 1); 
-  ss1BoxS->Add(new wxButton(this, id_button_StartSim, wxT("Simulate")), 0, wxALL, 1); 
-  
-  // Play buttons
-  ss2BoxS->Add(new wxButton(this, id_button_Play, wxT("Play")), 0, wxALL, 1); 
-  ss2BoxS->Add(new wxButton(this, id_button_FrameForward, wxT("Forward")), 0, wxALL, 1);
-  ss2BoxS->Add(new wxButton(this, id_button_FrameBackward, wxT("Backward")), 0, wxALL, 1);
-  
-  // Interactive buttons
-  ss3BoxS->Add(new wxButton(this, id_button_ApplyForce1, wxT("Apply Force")), 0, wxALL, 1); 
-  
+  ss1BoxS->Add(new wxButton(this, id_button_SetTimeline, wxT("Set Timeline")), 0, wxALL, 1);   
   
   // Add the boxes to their respective sizers
   sizerFull->Add(ss1BoxS, 1, wxEXPAND | wxALL, 6);
-  sizerFull->Add(ss2BoxS, 1, wxEXPAND | wxALL, 6);
-  sizerFull->Add(ss3BoxS, 1, wxEXPAND | wxALL, 6);
+
   SetSizer(sizerFull);
-  
-  // Initialize Dynamic Variables
-  mPlayState = PAUSED;
-  mSimFrame = 0;
-  mPlayFrame = 0;
-  mMovieFrame = 0;
-  mDisplayTimeout = 1000.0 / 30.0;
-  
+   
 }
 
+/**
+ * @function OnSlider
+ * @brief Handles slider changes
+ */
+void cubesTab::OnSlider(wxCommandEvent &evt) {
+
+}
 
 /**
  * @function OnButton
@@ -157,27 +137,13 @@ void cubesTab::OnButton(wxCommandEvent & _evt) {
     addFloor();
   }
     break;
-    
-  
-    // Start Dynamic Simulation
-  case id_button_Planning: {
-    settings();
-    
+
+    // Add Floor for cubes to fall on
+  case id_button_SetTimeline: {
+    setTimeline();
   }
     break;
     
-    // Start Dynamic Simulation
-  case id_button_StartSim: {
-    simulate();
-  }    
-    break;
-    
-    // Play
-  case id_button_Play: {
-
-  }
-  break;
-
   default: {
     printf("Default button \n");
     }
@@ -189,7 +155,6 @@ void cubesTab::OnButton(wxCommandEvent & _evt) {
  * @brief Add a floor *immobile* object
  */
 void cubesTab::addFloor() {
-  printf("Adding floor \n");
   robotics::Object* ground = new robotics::Object();
   ground->setName("ground");
   ground->addDefaultRootNode();
@@ -206,70 +171,34 @@ void cubesTab::addFloor() {
 
   treeView->CreateFromWorld();
     
+  printf("--> Added immobile floor \n");
 }
 
 /**
- * @function settings
+ * @function GRIPEventSimulationAfterTimeStep
  */
-void cubesTab::settings() {
-  
-}
-
-/**
- * @function simulate
- */
-void cubesTab::simulate() {
-
-  double totalTime = 2.0;
-  int counter = 0;
- 
-  int numIter = (mDisplayTimeout / 1000.0) / mWorld->mTimeStep;
-
-  while( mWorld->mTime < totalTime ) {
-
-    counter++;
-    printf("Counter: %d Current world time: %f num iter: %d\n", counter, mWorld->mTime, numIter );
-    for (int i = 0; i < numIter; i++) {
-      //     mWorld->getSkeleton(0)->setInternalForces(mController->getTorques(mWorld->getRobot(0)->getPose(), mWorld->getRobot(0)->getQDotVector(), mWorld->mTime));
-      mWorld->step();
-    }
-
-    mSimFrame += numIter;
-
-    bake();
-    
-    for (int j = 0; j < mWorld->getNumRobots(); j++) {
-      mWorld->getRobot(j)->update();
-    }
-    for (int j = 0; j < mWorld->getNumObjects(); j++) {
-      mWorld->getObject(j)->update();
-      }
-     viewer->DrawGLScene();
-  }
-
-  printf("Entered in loop %d times \n", counter);
-  SetTimeline();
+void cubesTab::GRIPEventSimulationAfterTimeStep() {
+  printf("AfterTime step \n");
+  bake();
 }
 
 /**
  * @function SetTimeline
  */
-void cubesTab::SetTimeline() {
-
-  double T = 2.0;
-
+void cubesTab::setTimeline() {
   
   int numsteps = mBakedStates.size();
 
-  double increment = T/(double)numsteps;
+  double increment = mWorld->mTimeStep;
+  double totalTime = mWorld->mTime;
 
-  cout << "-->(+) Updating Timeline - Increment: " << increment << " Total T: " << T << " Steps: " << numsteps << endl;
+  cout << "-->(+) Updating Timeline - Increment: " << increment << " Total T: " << totalTime << " Steps: " << numsteps << endl;
 
   frame->InitTimer( string("Planner"),increment );
 
-  mPlayFrame = 0;
-  for( int i = 0; i < numsteps; ++i ) {  
-    retrieveBakedState( mPlayFrame );
+  // Set the Time slider with the saved simulated frames
+  for( int i = 0; i < numsteps; ++i ) {
+    retrieveBakedState( i );
     for (int j = 0; j < mWorld->getNumRobots(); j++) {
       mWorld->getRobot(j)->update();
     }
@@ -277,16 +206,14 @@ void cubesTab::SetTimeline() {
       mWorld->getObject(j)->update();
     }
     frame->AddWorld( mWorld );
-    mPlayFrame++;
+  
   }
-  printf("Finished setting timeline \n");
-} 
-
-
+  printf("-- Finished setting timeline \n");
+}
 
 /**
  * @function bake
- * @brief
+ * @brief Store world state in a vector for future playback
  */
 void cubesTab::bake() {
 
@@ -299,7 +226,7 @@ void cubesTab::bake() {
 
 /**
  * @function retrieveBakedState
- * @brief 
+ * @brief Retrieve state at some frame
  */
 void cubesTab::retrieveBakedState( int _frame ) {
 
@@ -311,22 +238,18 @@ void cubesTab::retrieveBakedState( int _frame ) {
 
 }
 
+
 /**
- * @function OnSlider
- * @brief Handles slider changes
- */
-void cubesTab::OnSlider(wxCommandEvent &evt) {
-
-}
-
-
-// This function is called when an object is selected in the Tree View or other
-// global changes to the GRIP world. Use this to capture events from outside the tab.
+ * @function GRIPStateChange
+ * @brief This function is called when an object is selected in the Tree View 
+or other global changes to the GRIP world. Use this to capture events 
+from outside the tab.
+*/
 void cubesTab::GRIPStateChange() {
   if(selectedTreeNode==NULL){
     return;
   }
-  
+
   string statusBuf;
   string buf, buf2;
   switch (selectedTreeNode->dType) {

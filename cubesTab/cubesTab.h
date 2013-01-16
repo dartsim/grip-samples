@@ -65,36 +65,20 @@ class cubesTab : public GRIPTab {
   
   wxSizer* sizerFull;
   
-  void OnSlider(wxCommandEvent &evt);
   void OnButton(wxCommandEvent &evt);
+  void OnSlider(wxCommandEvent &evt);
   void GRIPStateChange();
   
   // *************************************  
-  // Dynamic Simulation Variables
-  enum playstate_enum {
-    SIMULATE,
-    RECORD,
-    PLAYBACK,
-    PAUSED
-  };
-
-  playstate_enum mPlayState;
-  playstate_enum mPlayStateLast;
-  int mSimFrame;
-  int mPlayFrame;
-  int mMovieFrame;
-  bool mScreenshotScheduled;
-  bool mShowMarker;
-  double mDisplayTimeout;
-
+  // Dynamic Simulation
   std::vector<Eigen::VectorXd> mBakedStates; /**< Saved states during simulation (for playback ) */
-
+  
   void addFloor();
-  void settings();
-  void simulate();
-  void SetTimeline();
   void bake(); 
   void retrieveBakedState( int _frame );
+  void setTimeline();
+
+  virtual void GRIPEventSimulationAfterTimeStep(); /**< Implement to save world states in simulation*/
   // *************************************
 
   
