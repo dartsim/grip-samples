@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8)
 project (planningTab)
 
 message (STATUS "Creating Makefile for planningTab")
@@ -13,21 +13,20 @@ if(WIN32)
   set (CMAKE_MODULE_LINKER_FLAGS "/LTCG")
 else ()
   set (CMAKE_INSTALL_PREFIX /usr )
-  #set (CMAKE_CXX_FLAGS "-g -O0 -Wall -Wextra -Wpointer-arith -fno-default-inline -fno-implicit-inline-templates -DwxUSE_THREADS -std=c++0x -fpermissive")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2 -O3  -std=c++0x")
 
 endif()
 
 include (${CMAKE_INSTALL_PREFIX}/share/dart/DARTConfig.cmake)
-include (${CMAKE_INSTALL_PREFIX}/share/grip/GRIP_config.cmake)
+include (${CMAKE_INSTALL_PREFIX}/share/grip/GRIPConfig.cmake)
 
-Find_Package(DART REQUIRED CONFIG)
-INCLUDE_DIRECTORIES( ${DART_INCLUDE_DIRS} )
+include_directories(${DART_INCLUDEDIR})
+include_directories(${GRIP_INCLUDEDIR})
 
-Find_Package(OpenGL REQUIRED)
-Find_Package(GLUT REQUIRED)
-INCLUDE_DIRECTORIES( ${GLUT_INCLUDE_DIRS} )
-MESSAGE(STATUS "${GLUT_glut_LIBRARY}")
+find_Package(OpenGL REQUIRED)
+find_Package(GLUT REQUIRED)
+include_directories(${GLUT_INCLUDE_DIRS})
+message(STATUS "${GLUT_glut_LIBRARY}")
 
 # Search all header and source files
 set ( planningTab_src planningTab.cpp planningTabApp.cpp Controller.cpp )
@@ -58,6 +57,3 @@ if (wxWidgets_FOUND)
 else (wxWidgets_FOUND)
   message ("wxWidgets not found!")
 endif (wxWidgets_FOUND)
-
-
-
