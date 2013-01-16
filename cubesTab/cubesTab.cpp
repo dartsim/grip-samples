@@ -177,7 +177,7 @@ void cubesTab::addFloor() {
 /**
  * @function GRIPEventSimulationAfterTimeStep
  */
-void cubesTab::GRIPEventSimulationAfterTimeStep() {
+void cubesTab::GRIPEventSimulationAfterTimestep() {
   printf("AfterTime step \n");
   bake();
 }

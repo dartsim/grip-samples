@@ -78,7 +78,7 @@ class cubesTab : public GRIPTab {
   void retrieveBakedState( int _frame );
   void setTimeline();
 
-  virtual void GRIPEventSimulationAfterTimeStep(); /**< Implement to save world states in simulation*/
+  virtual void GRIPEventSimulationAfterTimestep(); /**< Implement to save world states in simulation*/
   // *************************************
 
   
