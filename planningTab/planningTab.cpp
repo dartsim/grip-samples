@@ -65,6 +65,7 @@ using namespace std;
 
 // Planning and controller
 #include <planning/PathPlanner.h>
+#include <planning/PathShortener.h>
 #include <planning/Trajectory.h>
 #include "Controller.h"
 // **********************
@@ -268,6 +269,10 @@ void planningTab::initSettings() {
   }
   // Create the trajectory
   else {
+
+    planning::PathShortener pathShortener(mWorld, robotIndex, trajectoryDofs);
+    pathShortener.shortenPath(path);
+
     // Set maximum velocities and acceleration for the right arm joints
     const Eigen::VectorXd maxVelocity = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
     const Eigen::VectorXd maxAcceleration = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);

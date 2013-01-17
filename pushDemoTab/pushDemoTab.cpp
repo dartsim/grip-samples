@@ -65,6 +65,7 @@ using namespace std;
 
 // Planning and controller
 #include <planning/PathPlanner.h>
+#include <planning/PathShortener.h>
 #include <planning/Trajectory.h>
 #include "Controller.h"
 // **********************
@@ -382,7 +383,6 @@ void pushDemoTab::initSettings() {
   const Eigen::VectorXd anklePGains = -1000.0 * Eigen::VectorXd::Ones(2);
   const Eigen::VectorXd ankleDGains = -2000.0 * Eigen::VectorXd::Ones(2);
 
-  bake();
   // Create controller
   mController = new planning::Controller(mWorld->getRobot(mRobotIndex), actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
 
@@ -395,8 +395,11 @@ void pushDemoTab::initSettings() {
     std::cout << "<!> Path planner could not find a path" << std::endl;
   }
   else {
-
-  mWorld->getRobot(mRobotIndex)->update();
+    
+    planning::PathShortener pathShortener(mWorld, mRobotIndex, trajectoryDofs);
+    pathShortener.shortenPath(path);
+    
+    mWorld->getRobot(mRobotIndex)->update();
 
   const Eigen::VectorXd maxVelocity = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
   const Eigen::VectorXd maxAcceleration = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
@@ -440,7 +443,6 @@ void pushDemoTab::GRIPEventSimulationAfterTimestep() {
  * @brief
  */
 void pushDemoTab::GRIPEventSimulationStart() {
-  retrieveBakedState(0);
 
 }
 

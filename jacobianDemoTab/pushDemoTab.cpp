@@ -149,6 +149,7 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
   // Start and Conf with furniture_2
   mPredefStartConf << -0.858702, -0.674395, 0, -0.337896, 0, 0, 0;
   mPredefGoalPos << 0.5, 0.6, 1.0;
+  mGoalObject = "smallRedBall";
 
 }
 

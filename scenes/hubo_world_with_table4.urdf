@@ -10,16 +10,18 @@
   </entity>
 
   <entity model="table4" name="table4">
-    <origin xyz="0.53 -0.13 0.40" rpy="1.57 0.0 1.57"/>
+    <origin xyz="0.53 -0.13 0.35" rpy="1.57 0.0 1.57"/>
   </entity>
 
 
-  <entity model="cyanCube" name="cyanCube">
-    <origin xyz="0.53 -0.30 0.83" rpy="0.0 0.0 0.0"/>
+  <entity model="cyanCube" name="orangeCube">
+    <origin xyz="0.53 -0.30 0.76" rpy="0.0 0.0 0.0"/>
   </entity>
 
   <entity model="yellowCube" name="yellowCube">
-    <origin xyz="0.53 -0.30 0.935" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.53 -0.30 0.86" rpy="0.0 0.0 0.0"/>
+  </entity>
+
   </entity>
 
 </world>

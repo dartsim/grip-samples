@@ -387,7 +387,6 @@ void pushDemoTab::initSettings() {
   const Eigen::VectorXd anklePGains = -1000.0 * Eigen::VectorXd::Ones(2);
   const Eigen::VectorXd ankleDGains = -2000.0 * Eigen::VectorXd::Ones(2);
 
-  bake();
   // Create controller
   mController = new planning::Controller(mWorld->getRobot(mRobotIndex), actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
 
@@ -482,7 +481,6 @@ void pushDemoTab::GRIPEventSimulationAfterTimestep() {
  * @brief
  */
 void pushDemoTab::GRIPEventSimulationStart() {
-  retrieveBakedState(0);
 
 }
 
