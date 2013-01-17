@@ -426,6 +426,13 @@ void pushDemoTab::GRIPEventSimulationAfterTimestep() {
   }
 }
 
+/**
+ * @function GRIPEventSimulationStart
+ * @brief
+ */
+void pushDemoTab::GRIPEventSimulationStart() {
+  printf("Start !!!!!!!!!!!!\n");
+}
 
 /**
  * @function setTimeline

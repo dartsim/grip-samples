@@ -91,7 +91,7 @@ public:
 
   virtual void GRIPEventSimulationBeforeTimestep(); /**< Implement to apply forces before simulating a dynamic step */
   virtual void GRIPEventSimulationAfterTimestep(); /**< Implement to save world states in simulation*/
-
+  virtual void GRIPEventSimulationStart(); 
   // *************************************
 
   
