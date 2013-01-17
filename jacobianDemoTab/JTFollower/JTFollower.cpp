@@ -21,8 +21,8 @@
  * @brief Constructor
  */
 JTFollower::JTFollower() {
-    mCopyWorld = false;
-    mWorld = NULL;
+  mCopyWorld = false;
+  mWorld = NULL;
 }
 
 /**
@@ -32,16 +32,16 @@ JTFollower::JTFollower() {
 JTFollower::JTFollower( robotics::World &_world, 
                         bool _copyWorld, 
 			double _configStep ) {
-
-    mCopyWorld = _copyWorld;
-
-    if( mCopyWorld ) {
-       printf( "Not implemented yet. Sorry -- achq \n" );
-    } else {
-        mWorld = &_world;
-    }
-
-    mConfigStep = _configStep;
+  
+  mCopyWorld = _copyWorld;
+  
+  if( mCopyWorld ) {
+    printf( "Not implemented yet. Sorry -- achq \n" );
+  } else {
+    mWorld = &_world;
+  }
+  
+  mConfigStep = _configStep;
 }
 
 /**
@@ -49,25 +49,25 @@ JTFollower::JTFollower( robotics::World &_world,
  * @brief Destructor
  */
 JTFollower::~JTFollower() {
-
-    if( mCopyWorld ) {
-        delete mWorld;
-    }
+  
+  if( mCopyWorld ) {
+    delete mWorld;
+  }
 }
 
 /**
  * @function init
  */
 void JTFollower::init( int _robotId,
-		       const Eigen::VectorXi &_links,
+		       const std::vector<int> &_links,
 		       std::string _EEName,
 		       int _EEId,
 		       double _res ) {
-
+  
   mRobotId = _robotId;
   mLinks = _links;
   
-  mMaxIter = 1000;
+  mMaxIter = 200;
   mWorkspaceThresh = _res; // An error of half the resolution
   mEENode = (dynamics::BodyNodeDynamics*) mWorld->getRobot(mRobotId)->getNode( _EEName.c_str() );
   mEEId = _EEId;  
@@ -162,7 +162,7 @@ Eigen::VectorXd JTFollower::GetXYZ( Eigen::VectorXd _q ) {
 
 	
   // Get current XYZ position
-  mWorld->getRobot(mRobotId)->setDofs( _q, mLinks );
+  mWorld->getRobot(mRobotId)->setDofs( mLinks, _q );
   mWorld->getRobot(mRobotId)->update();
   
   Eigen::MatrixXd qTransform = mEENode->getWorldTransform();

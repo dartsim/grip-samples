@@ -42,6 +42,7 @@
 #include <Tabs/GRIPTab.h>
 #include <Tabs/GRIPThread.h>
 #include <Tools/Constants.h>
+#include <list>
 
 namespace planning { class Controller; }
 
@@ -96,6 +97,8 @@ public:
   void setTimeline();
   void bake();
   void retrieveBakedState( int _frame );
+
+  std::list<Eigen::VectorXd> getPath(); 
 
   virtual void GRIPEventSimulationBeforeTimestep(); /**< Implement to apply forces before simulating a dynamic step */
   virtual void GRIPEventSimulationAfterTimestep(); /**< Implement to save world states in simulation*/

@@ -30,8 +30,8 @@ include_directories(${GLUT_INCLUDE_DIRS})
 message(STATUS "${GLUT_glut_LIBRARY}")
 
 # Search all header and source files
-set ( pushDemoTab_src pushDemoTab.cpp pushDemoTabApp.cpp Controller.cpp )
-set ( pushDemoTab_hdr pushDemoTab.h Controller.h )
+set ( pushDemoTab_src pushDemoTab.cpp pushDemoTabApp.cpp Controller.cpp JTFollower/JTFollower.cpp )
+set ( pushDemoTab_hdr pushDemoTab.h Controller.h JTFollower/JTFollower.h )
 
 if(WIN32)
   set (wxWidgets_EXCLUDE_COMMON_LIBRARIES TRUE)

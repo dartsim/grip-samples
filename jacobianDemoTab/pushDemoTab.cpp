@@ -37,6 +37,7 @@
  */
 
 #include "pushDemoTab.h"
+#include "JTFollower/JTFollower.h"
 
 #include <wx/wx.h>
 #include <GUI/Viewer.h>
@@ -66,6 +67,7 @@ using namespace std;
 // Planning and controller
 #include <planning/PathPlanner.h>
 #include <planning/Trajectory.h>
+#include <planning/PathShortener.h>
 #include "Controller.h"
 // **********************
 
@@ -147,7 +149,7 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
   mPredefGoalPos.resize( mSizePos );
   
   // Start and Conf with furniture_2
-  mPredefStartConf << -0.858702, -0.674395, 0, -0.337896, 0, 0, 0;
+  mPredefStartConf <<  -1.20687,  -1.11899,  0,  0,  0,  0,  0 ;
   mPredefGoalPos << 0.5, 0.6, 1.0;
   mGoalObject = "smallRedBall";
 
@@ -385,13 +387,17 @@ void pushDemoTab::initSettings() {
 
   // Create controller
   mController = new planning::Controller(mWorld->getRobot(mRobotIndex), actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
-  /*
-  // Create Planner
-  planning::PathPlanner<> pathPlanner(*mWorld);
 
-  // Call Planner
+  // Find path
+  bake();
   std::list<Eigen::VectorXd> path;
-  if(!pathPlanner.planPath(mRobotIndex, trajectoryDofs, mStartConf, mGoalConf, path)) {
+  path = getPath();
+  planning::PathShortener pathShortener(mWorld, mRobotIndex, trajectoryDofs);
+  pathShortener.shortenPath(path);
+
+  retrieveBakedState(0);
+
+  if( path.size() < 1 ) {
     std::cout << "<!> Path planner could not find a path" << std::endl;
   }
   else {
@@ -405,12 +411,56 @@ void pushDemoTab::initSettings() {
   //mController->setTrajectory(trajectory, 0.1, trajectoryDofs);
   mController->setTrajectory(trajectory, 0, trajectoryDofs);
   }
-
-  */
+  
   // Reactivate collision of feet with floor
   mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
   mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("rightFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
   printf("Controller time: %f \n", mWorld->mTime);
+}
+
+/**
+ * @function getPathToPos
+ */
+std::list<Eigen::VectorXd> pushDemoTab::getPath() {
+
+  printf("Running JT Follower \n");
+  std::list<Eigen::VectorXd> path;
+
+  std::vector<int> trajectoryDofs( mRA_NumNodes);
+  printf("Trajectory nodes are: ");
+  for(int i = 0; i < mRA_NumNodes; i++) {
+    trajectoryDofs[i] = mWorld->getRobot(mRobotIndex)->getNode(mRA_Nodes[i].c_str())->getDof(0)->getSkelIndex();
+    printf(" %f ", trajectoryDofs[i]);
+  }
+
+  JTFollower *jt = new JTFollower(*mWorld);
+
+  mEEName = "rightPalmDummy";
+  for( int i = 0; i < mWorld->getRobot( mRobotIndex )->getNumNodes(); ++i ) {\
+    if( mWorld->getRobot( mRobotIndex )->getNode(i)->getName() == mEEName ) {
+      mEEId = i; break;
+    }
+  }
+
+  jt->init( mRobotIndex, trajectoryDofs, mEEName, mEEId, 0.02 ); 
+  
+  std::vector<Eigen::VectorXd> wsPath; 
+  Eigen::VectorXd start = mStartConf; 
+  if( jt->GoToXYZ( start,  
+		   mGoalPos,  
+		   wsPath ) == true ) { 
+    printf("Found solution JT! \n"); 
+  } 
+  else{ 
+    printf("NO Found solution JT! Plotting anyway \n"); 
+  }   
+
+  // Save to list to generate trajectory
+  for( int i = 0; i < wsPath.size(); ++i ) {
+    path.push_back( wsPath[i] );
+  }
+  return path;
+
 }
 
 

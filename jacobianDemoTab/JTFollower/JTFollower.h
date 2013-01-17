@@ -51,47 +51,47 @@
 class JTFollower {
 
 public:
-
-    /// Member variables
-    double mConfigStep;
-    robotics::World *mWorld;
-    int mRobotId;
-    Eigen::VectorXi mLinks;
-    double mWorkspaceThresh;
-    
-    dynamics::BodyNodeDynamics *mEENode;
-    int mEEId;
-    int mMaxIter;
-    
-    /// Constructor
-    JTFollower();
-    JTFollower( robotics::World &_world,
-                bool _copyWorld = false,
-                double _configStep = 0.1 ); // 0.046 = 1_degree * sqrt(7)
-    
-    void init( int _robotId,
-	       const Eigen::VectorXi &_links,
-	       std::string _EEName,
-	       int _EEId,
-	       double _res );
-    
-    /// Destructor
-    ~JTFollower();
-    
-    /// Planner itself
-    std::vector< Eigen::VectorXd > PlanPath( const Eigen::VectorXd &_start,  // Configuration,				     
-					     const std::vector<Eigen::VectorXd> &_workspacePath ); // Pose    
-    
-    Eigen::MatrixXd GetPseudoInvJac( Eigen::VectorXd _q ) ;
-    bool GoToXYZ( Eigen::VectorXd &_q, 
-		  Eigen::VectorXd _targetXYZ, 
-		  std::vector<Eigen::VectorXd> &_workspacePath );
-    Eigen::VectorXd GetXYZ( Eigen::VectorXd _q );
-    
+  
+  /// Member variables
+  double mConfigStep;
+  robotics::World *mWorld;
+  int mRobotId;
+  std::vector<int> mLinks;
+  double mWorkspaceThresh;
+  
+  dynamics::BodyNodeDynamics *mEENode;
+  int mEEId;
+  int mMaxIter;
+  
+  /// Constructor
+  JTFollower();
+  JTFollower( robotics::World &_world,
+	      bool _copyWorld = false,
+	      double _configStep = 0.1 ); // 0.046 = 1_degree * sqrt(7)
+  
+  void init( int _robotId,
+	     const std::vector<int> &_links,
+	     std::string _EEName,
+	     int _EEId,
+	     double _res );
+  
+  /// Destructor
+  ~JTFollower();
+  
+  /// Planner itself
+  std::vector< Eigen::VectorXd > PlanPath( const Eigen::VectorXd &_start,  // Configuration,				     
+					   const std::vector<Eigen::VectorXd> &_workspacePath ); // Pose    
+  
+  Eigen::MatrixXd GetPseudoInvJac( Eigen::VectorXd _q ) ;
+  bool GoToXYZ( Eigen::VectorXd &_q, 
+		Eigen::VectorXd _targetXYZ, 
+		std::vector<Eigen::VectorXd> &_workspacePath );
+  Eigen::VectorXd GetXYZ( Eigen::VectorXd _q );
+  
  private:
-    /// Member variables
-    bool mCopyWorld;
-    
+  /// Member variables
+  bool mCopyWorld;
+  
 };
 
 #endif /** _JT_FOLLOWER_H_ */
