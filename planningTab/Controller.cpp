@@ -16,8 +16,13 @@ using namespace Eigen;
 
 namespace planning {
 
-Controller::Controller(dynamics::SkeletonDynamics* _skel, const vector<int> &_actuatedDofs,
-                       const VectorXd &_kP, const VectorXd &_kD, const vector<int> &_ankleDofs, const VectorXd &_anklePGains, const VectorXd &_ankleDGains) :
+Controller::Controller(dynamics::SkeletonDynamics* _skel,
+                       const vector<int> &_actuatedDofs,
+                       const VectorXd &_kP,
+                       const VectorXd &_kD,
+                       const vector<int> &_ankleDofs,
+                       const VectorXd &_anklePGains,
+                       const VectorXd &_ankleDGains) :
     mSkel(_skel),
     mKp(_kP.asDiagonal()),
     mKd(_kD.asDiagonal()),
