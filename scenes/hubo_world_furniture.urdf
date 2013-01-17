@@ -1,19 +1,15 @@
 <world name="hubo_world_with_box">
   <!-- include the models here by referenceing their URDFs -->
   <include filename="hubo.urdf" model_name="jaemi"/>
-  <include filename="diningchair.urdf" model_name="diningchair"/>
-  <include filename="rollyTable.urdf" model_name="rollyTable"/>
+  <include filename="glassDiningTable2.urdf" model_name="glassDiningTable2"/>
 
   <entity model="jaemi" name="GolemHubo">
     <origin xyz="0 0 1.0" rpy="0 0 0"/>
   </entity>
 
-  <entity model="rollyTable" name="rollyTable">
-    <origin xyz="-1.0 0.8 1.0" rpy="0.0 0.0 0.0"/>
+  <entity model="glassDiningTable2" name="glassDiningTable2">
+    <origin xyz="0.67 -0.13 0.45" rpy="1.57 0.0 0.0"/>
   </entity>
 
-  <entity model="diningchair" name="diningchair">
-    <origin xyz="-1.0 0.8 1.0" rpy="0.0 0.0 0.0"/>
-  </entity>
 
 </world>

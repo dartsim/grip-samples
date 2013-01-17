@@ -1,6 +1,6 @@
-<!-- diningchair.urdf -->
+<!-- glassDiningTable2.urdf -->
 
-<object name="diningchair">
+<object name="glassDiningTable2">
 
 	<!-- Link 0 -->
 	<link name="link_0">
@@ -12,12 +12,12 @@
 		</inertial>
 		<visual>
 			<geometry>
-				<mesh filename="objects/diningchair.wrl"/>
+				<mesh filename="objects/glass-dining-table3.3ds"/>
 			</geometry>
 		</visual>
 		<collision>
 			<geometry>
-				<mesh filename="objects/diningchair.wrl"/>
+				<mesh filename="objects/glass-dining-table3.3ds"/>
 			</geometry>
 		</collision>
 	</link>
