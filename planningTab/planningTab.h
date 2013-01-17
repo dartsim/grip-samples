@@ -36,8 +36,8 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PLANNING_TAB
-#define PLANNING_TAB
+#ifndef __SAMPLES_PLANNING_TAB__
+#define __SAMPLES_PLANNING_TAB__
 
 #include <Tabs/GRIPTab.h>
 #include <Tabs/GRIPThread.h>
@@ -47,52 +47,41 @@ namespace planning { class Controller; }
 
 /**
  * @class planningTab
+ * @brief Simulates Hubo moving its arm while balancing
  */
-class planningTab : public GRIPTab
-{
-public:
+class planningTab : public GRIPTab {
+ public:
   planningTab(){};
   planningTab(wxWindow * parent, wxWindowID id = -1,
 	      const wxPoint & pos = wxDefaultPosition,
 	      const wxSize & size = wxDefaultSize,
 	      long style = wxTAB_TRAVERSAL);
   virtual ~planningTab(){};
-	
+  
   wxSizer* sizerFull;
   
   void OnSlider(wxCommandEvent &evt);
   void OnButton(wxCommandEvent &evt);
   void GRIPStateChange();
-
+  
   // *************************************  
   // Dynamic Simulation Variables
-  enum playstate_enum {
-    SIMULATE,
-    RECORD,
-    PLAYBACK,
-    PAUSED
-  };
-
-  playstate_enum mPlayState;
-  playstate_enum mPlayStateLast;
-  int mSimFrame;
-  int mPlayFrame;
-  int mMovieFrame;
-  bool mScreenshotScheduled;
-  bool mShowMarker;
-  double mDisplayTimeout;
 
   std::vector<Eigen::VectorXd> mBakedStates;
   planning::Controller* mController;
+  static const string mRA_Nodes[];
+  int static const mRA_NumNodes = 7;
 
   void addFloor();
-  void settings();
-  void simulate();
-  void SetTimeline();
+  void initSettings();
+  void setTimeline();
   void bake();
   void retrieveBakedState( int _frame );
-  // *************************************
+  int mCurrentFrame;
 
+  virtual void GRIPEventSimulationBeforeTimestep(); /**< Implement to apply forces before simulating a dynamic step */
+  virtual void GRIPEventSimulationAfterTimestep(); /**< Implement to save world states in simulation*/
+  // *************************************
   
   // Thread specific
   // GRIPThread* thread;

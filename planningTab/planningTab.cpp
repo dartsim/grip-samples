@@ -73,12 +73,9 @@ using namespace std;
 /** Events */
 enum DynamicSimulationTabEvents {
   id_button_AddFloor = 8345,
-  id_button_StartSim, // just to be safe
-  id_button_Planning,
-  id_button_Play,
-  id_button_FrameForward,
-  id_button_FrameBackward,
-  id_button_ApplyForce1
+  id_button_StartSim,
+  id_button_InitSettings,
+  id_button_SetTimeline
 };
 
 /** Handler for events **/
@@ -91,51 +88,38 @@ END_EVENT_TABLE()
 // Class constructor for the tab: Each tab will be a subclass of GRIPTab
 IMPLEMENT_DYNAMIC_CLASS(planningTab, GRIPTab)
 
+// Define right arm nodes
+string const planningTab::mRA_Nodes[mRA_NumNodes] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "rightUJoint", "rightPalmDummy"}; 
+
+
 /**
  * @function planningTab
  * @brief Constructor
  */
 planningTab::planningTab(wxWindow *parent, const wxWindowID id,
-		const wxPoint& pos, const wxSize& size, long style) :
-	GRIPTab(parent, id, pos, size, style) {
-	sizerFull = new wxBoxSizer(wxHORIZONTAL);
-
-	// Create Static boxes (outline of your Tab)
-	wxStaticBox* ss1Box = new wxStaticBox(this, -1, wxT("Simulation"));
-	wxStaticBox* ss2Box = new wxStaticBox(this, -1, wxT("Play Options"));
-	wxStaticBox* ss3Box = new wxStaticBox(this, -1, wxT("Interactive"));
-
-	// Create sizers for these static boxes
-	wxStaticBoxSizer* ss1BoxS = new wxStaticBoxSizer(ss1Box, wxVERTICAL);
-	wxStaticBoxSizer* ss2BoxS = new wxStaticBoxSizer(ss2Box, wxVERTICAL);
-	wxStaticBoxSizer* ss3BoxS = new wxStaticBoxSizer(ss3Box, wxVERTICAL);
-
-	// Start - Stop buttons
-	ss1BoxS->Add(new wxButton(this, id_button_AddFloor, wxT("Add floor")), 0, wxALL, 1); 
-	ss1BoxS->Add(new wxButton(this, id_button_Planning, wxT("Do Planning")), 0, wxALL, 1); 
-	ss1BoxS->Add(new wxButton(this, id_button_StartSim, wxT("Simulate")), 0, wxALL, 1); 
-
-	// Play buttons
-	ss2BoxS->Add(new wxButton(this, id_button_Play, wxT("Play")), 0, wxALL, 1); 
-	ss2BoxS->Add(new wxButton(this, id_button_FrameForward, wxT("Forward")), 0, wxALL, 1);
- 	ss2BoxS->Add(new wxButton(this, id_button_FrameBackward, wxT("Backward")), 0, wxALL, 1);
-
-	// Play buttons
-	ss3BoxS->Add(new wxButton(this, id_button_ApplyForce1, wxT("Apply Force")), 0, wxALL, 1); 
-
-
-	// Add the boxes to their respective sizers
-	sizerFull->Add(ss1BoxS, 1, wxEXPAND | wxALL, 6);
-	sizerFull->Add(ss2BoxS, 1, wxEXPAND | wxALL, 6);
-	sizerFull->Add(ss3BoxS, 1, wxEXPAND | wxALL, 6);
-	SetSizer(sizerFull);
-
-	// Initialize Dynamic Variables
-	mPlayState = PAUSED;
-	mSimFrame = 0;
-	mPlayFrame = 0;
-	mMovieFrame = 0;
-	mDisplayTimeout = 1000.0 / 30.0;
+			 const wxPoint& pos, const wxSize& size, long style) :
+  GRIPTab(parent, id, pos, size, style) {
+  sizerFull = new wxBoxSizer(wxHORIZONTAL);
+  
+  // Create Static boxes (outline of your Tab)
+  wxStaticBox* ss1Box = new wxStaticBox(this, -1, wxT("Simulation"));
+  
+  // Create sizers for these static boxes
+  wxStaticBoxSizer* ss1BoxS = new wxStaticBoxSizer(ss1Box, wxVERTICAL);
+  
+  // Buttons
+  ss1BoxS->Add(new wxButton(this, id_button_AddFloor, wxT("Add floor")), 0, wxALL, 1); 
+  ss1BoxS->Add(new wxButton(this, id_button_InitSettings, wxT("Init Settings and Planning")), 0, wxALL, 1); 
+  ss1BoxS->Add(new wxButton(this, id_button_SetTimeline, wxT("Set Timeline")), 0, wxALL, 1); 
+  
+  
+  // Add the boxes to their respective sizers
+  sizerFull->Add(ss1BoxS, 1, wxEXPAND | wxALL, 6);
+  
+  SetSizer(sizerFull);
+  
+  // Initialization
+  mCurrentFrame = 0;
 
 }
 
@@ -149,36 +133,29 @@ void planningTab::OnButton(wxCommandEvent & _evt) {
   int slnum = _evt.GetId();
   
   switch( slnum ) {
-  
+    
     // Add Floor for Hubo to fall on :)
   case id_button_AddFloor: {
     addFloor();
   }
     break;
-
+    
   
     // Start Dynamic Simulation
-  case id_button_Planning: {
-    settings();
-
+  case id_button_InitSettings: {
+    initSettings();    
   }
     break;
     
-    // Start Dynamic Simulation
-  case id_button_StartSim: {
-    simulate();
+    // Set Timeline
+  case id_button_SetTimeline: {
+    setTimeline();
   }    
     break;
-
-    // Play
-  case id_button_Play: {
-
-  }
-  break;
-
+    
   default: {
     printf("Default button \n");
-    }
+  }
   }
 }
 
@@ -187,7 +164,7 @@ void planningTab::OnButton(wxCommandEvent & _evt) {
  * @brief Add a floor *immobile* object
  */
 void planningTab::addFloor() {
-  printf("Adding floor \n");
+
   robotics::Object* ground = new robotics::Object();
   ground->setName("ground");
   ground->addDefaultRootNode();
@@ -203,123 +180,142 @@ void planningTab::addFloor() {
   mWorld->rebuildCollision();
 
   treeView->CreateFromWorld();
-    
+
+  printf("-- Added floor \n" );    
 }
 
 /**
- * @function settings
+ * @function initSettings
  */
-void planningTab::settings() {
+void planningTab::initSettings() {
 
-  std::vector<int> trajectoryDofs(7);
-  string trajectoryNodes[] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "rightUJoint", "rightPalmDummy"}; 
-  for(int i = 0; i < 7; i++) {
-    trajectoryDofs[i] = mWorld->getRobot(0)->getNode(trajectoryNodes[i].c_str())->getDof(0)->getSkelIndex();
+  // Get the ground object index
+  int groundIndex = -1;
+  for( int i = 0; i < mWorld->getNumObjects(); ++i ) {
+    if( mWorld->getObject(i)->getName() == "ground" ) {
+      groundIndex = i; break;
+    }
+  }
+  if( groundIndex == -1 ) { printf("I did not find the floor. EXIT! \n"); return; }
+  else { printf("-- Ground is object %d \n", groundIndex);}
+
+  // Get the robot (in this case there is only one)
+  int robotIndex = 0;
+
+  // Get the DOF indices for the Right Arm
+  std::vector<int> trajectoryDofs( mRA_NumNodes );
+  for(int i = 0; i < mRA_NumNodes; i++) {
+    trajectoryDofs[i] = mWorld->getRobot(robotIndex)->getNode(mRA_Nodes[i].c_str())->getDof(0)->getSkelIndex();
   }
 
-  std::vector<int> actuatedDofs(mWorld->getRobot(0)->getNumDofs() - 6);
+  // Store the actuated DOF (do not consider the first 6 since they are not actually actuated)
+  std::vector<int> actuatedDofs(mWorld->getRobot(robotIndex)->getNumDofs() - 6);
   for(unsigned int i = 0; i < actuatedDofs.size(); i++) {
     actuatedDofs[i] = i + 6;
   }
-
-  mWorld->getRobot(0)->getDof(19)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(0)->getDof(20)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(0)->getDof(23)->setValue(20.0 * M_PI/180.0);
-  mWorld->getRobot(0)->getDof(24)->setValue(20.0 * M_PI/180.0);
-  mWorld->getRobot(0)->getDof(27)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(0)->getDof(28)->setValue(-10.0 * M_PI/180.0);
   
-  mWorld->getRobot(0)->update();
+  // Set an initial configuration for the robot
+  mWorld->getRobot(robotIndex)->getDof(19)->setValue(-10.0 * M_PI/180.0);
+  mWorld->getRobot(robotIndex)->getDof(20)->setValue(-10.0 * M_PI/180.0);
+  mWorld->getRobot(robotIndex)->getDof(23)->setValue(20.0 * M_PI/180.0);
+  mWorld->getRobot(robotIndex)->getDof(24)->setValue(20.0 * M_PI/180.0);
+  mWorld->getRobot(robotIndex)->getDof(27)->setValue(-10.0 * M_PI/180.0);
+  mWorld->getRobot(robotIndex)->getDof(28)->setValue(-10.0 * M_PI/180.0);
+  // Update the Viewer
+  mWorld->getRobot(robotIndex)->update();
   viewer->DrawGLScene();
   
   // Deactivate collision checking between the feet and the ground during planning
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(0)->getNode("leftFoot"), mWorld->getObject(0)->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(0)->getNode("rightFoot"), mWorld->getObject(0)->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(robotIndex)->getNode("leftFoot"), mWorld->getObject(groundIndex)->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(robotIndex)->getNode("rightFoot"), mWorld->getObject(groundIndex)->getNode(1));
   
-  Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(0)->getNumDofs());
-  Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mWorld->getRobot(0)->getNumDofs());
-  Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(0)->getNumDofs());
+  // Set the gains for the PD controller (Body)
+  Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(robotIndex)->getNumDofs());
+  Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mWorld->getRobot(robotIndex)->getNumDofs());
+  Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(robotIndex)->getNumDofs());
+
+  // Set the gains for the ankle PD controller
   std::vector<int> ankleDofs(2);
   ankleDofs[0] = 27;
   ankleDofs[1] = 28;
   const Eigen::VectorXd anklePGains = -1000.0 * Eigen::VectorXd::Ones(2);
   const Eigen::VectorXd ankleDGains = -2000.0 * Eigen::VectorXd::Ones(2);
-  mController = new planning::Controller(mWorld->getRobot(0), actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
+
+  // Set the controller
+  mController = new planning::Controller(mWorld->getRobot(robotIndex), actuatedDofs, kP, kD, 
+					 ankleDofs, anklePGains, ankleDGains);
+
+  // Set the planner
   planning::PathPlanner<> pathPlanner(*mWorld);
-  Eigen::VectorXd goal(7);
-  goal << 0.0, -M_PI / 2.0, 0.0, -M_PI / 2.0, 0.0, 0.0, 0.0;
+
+  // Set goal right arm configuration
+  Eigen::VectorXd goalConf(mRA_NumNodes);
+  goalConf << 0.0, -M_PI / 2.0, 0.0, -M_PI / 2.0, 0.0, 0.0, 0.0;
+  Eigen::VectorXd startConf(mRA_NumNodes);
+  startConf << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+
+  // Find the path
   std::list<Eigen::VectorXd> path;
-  if(!pathPlanner.planPath(0, trajectoryDofs, Eigen::VectorXd::Zero(7), goal, path)) {
-    std::cout << "Path planner could not find a path" << endl;
+  if(!pathPlanner.planPath(robotIndex, trajectoryDofs, startConf, goalConf, path)) {
+    std::cout << "<!> Path planner could not find a path" << std::endl;
   }
+  // Create the trajectory
   else {
-    const Eigen::VectorXd maxVelocity = 0.3 * Eigen::VectorXd::Ones(7);
-    const Eigen::VectorXd maxAcceleration = 0.3 * Eigen::VectorXd::Ones(7);
+    // Set maximum velocities and acceleration for the right arm joints
+    const Eigen::VectorXd maxVelocity = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
+    const Eigen::VectorXd maxAcceleration = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
     planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
-    std::cout << "Trajectory duration: " << trajectory->getDuration() << endl;
+    std::cout << "-- Trajectory duration: " << trajectory->getDuration() << std::endl;
     mController->setTrajectory(trajectory, 0.1, trajectoryDofs);
   }
   
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(0)->getNode("leftFoot"), mWorld->getObject(0)->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(0)->getNode("rightFoot"), mWorld->getObject(0)->getNode(1));
+  // Re-activate collision for foot and ground
+  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(robotIndex)->getNode("leftFoot"), mWorld->getObject(groundIndex)->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(robotIndex)->getNode("rightFoot"), mWorld->getObject(groundIndex)->getNode(1));
   
 }
 
 /**
- * @function simulate
+ * @function GRIPEventSimulationBeforeTimeStep
+ * @brief Before each sim step we must set the internal forces 
  */
-void planningTab::simulate() {
+void planningTab::GRIPEventSimulationBeforeTimestep() {
 
-  double totalTime = 2.0;
-  int counter = 0;
+  int robotIndex = 0;
+  mWorld->getRobot(robotIndex)->setInternalForces(mController->getTorques(mWorld->getRobot(robotIndex)->getPose(), mWorld->getRobot(robotIndex)->getQDotVector(), mWorld->mTime));
  
-  int numIter = (mDisplayTimeout / 1000.0) / mWorld->mTimeStep;
-
-  while( mWorld->mTime < totalTime ) {
-
-    counter++;
-    printf("Counter: %d Current world time: %f num iter: %d\n", counter, mWorld->mTime, numIter );
-    for (int i = 0; i < numIter; i++) {
-      mWorld->getRobot(0)->setInternalForces(mController->getTorques(mWorld->getRobot(0)->getPose(), mWorld->getRobot(0)->getQDotVector(), mWorld->mTime));
-      mWorld->step();
-    }
-
-    mSimFrame += numIter;
-
-    bake();
-    
-    for (int j = 0; j < mWorld->getNumRobots(); j++) {
-      mWorld->getRobot(j)->update();
-    }
-    for (int j = 0; j < mWorld->getNumObjects(); j++) {
-      mWorld->getObject(j)->update();
-      }
-     viewer->DrawGLScene();
-  }
-
-  printf("Entered in loop %d times \n", counter);
-  SetTimeline();
 }
 
 /**
- * @function SetTimeline
+ * @function GRIPEventSimulationAfterTimeStep
+ * @brief After 30 sim steps we save frames for future playback
  */
-void planningTab::SetTimeline() {
+void planningTab::GRIPEventSimulationAfterTimestep() {
 
-  double T = 2.0;
+  mCurrentFrame++;
+  if( mCurrentFrame % 30 == 0 ) {
+    bake();
+  }
+}
 
-  
+
+/**
+ * @function setTimeline
+ */
+void planningTab::setTimeline() {
+
   int numsteps = mBakedStates.size();
-
-  double increment = T/(double)numsteps;
-
-  cout << "-->(+) Updating Timeline - Increment: " << increment << " Total T: " << T << " Steps: " << numsteps << endl;
-
+  
+  double increment = mWorld->mTimeStep;
+  double totalTime = mWorld->mTime;
+  
+  cout << "-->(+) Updating Timeline - Increment: " << increment << " Total T: " << totalTime << " Steps: " << numsteps << endl;
+  
   frame->InitTimer( string("Planner"),increment );
-
-  mPlayFrame = 0;
-  for( int i = 0; i < numsteps; ++i ) {  
-    retrieveBakedState( mPlayFrame );
+  
+  // Set the Time slider with the saved simulated frames
+  for( int i = 0; i < numsteps; ++i ) {
+    retrieveBakedState( i );
     for (int j = 0; j < mWorld->getNumRobots(); j++) {
       mWorld->getRobot(j)->update();
     }
@@ -327,11 +323,11 @@ void planningTab::SetTimeline() {
       mWorld->getObject(j)->update();
     }
     frame->AddWorld( mWorld );
-    mPlayFrame++;
+    
   }
-  printf("Finished setting timeline \n");
-} 
+  printf("-- Finished setting timeline \n");
 
+} 
 
 
 /**
@@ -349,7 +345,7 @@ void planningTab::bake() {
 
 /**
  * @function retrieveBakedState
- * @brief 
+ * @brief Set the world to the saved state at frame _frame
  */
 void planningTab::retrieveBakedState( int _frame ) {
 
@@ -373,36 +369,36 @@ void planningTab::OnSlider(wxCommandEvent &evt) {
 // This function is called when an object is selected in the Tree View or other
 // global changes to the GRIP world. Use this to capture events from outside the tab.
 void planningTab::GRIPStateChange() {
-	if(selectedTreeNode==NULL){
-		return;
-	}
-
-	string statusBuf;
-	string buf, buf2;
-	switch (selectedTreeNode->dType) {
-	case Return_Type_Object:
-		statusBuf = " Selected Object: ";
-		buf = "You clicked on object: ";
-
-		break;
-	case Return_Type_Robot:
-		statusBuf = " Selected Robot: ";
-		buf = "You clicked on robot: ";
-
-		break;
-	case Return_Type_Node:
-		statusBuf = " Selected Link:  of Robot: ";
-		buf = " Link:  of Robot: ";
-		// Do something here if you want to.  you get the idea...
-
-		break;
-    default:
-        fprintf(stderr, "someone else's problem.");
-        assert(0);
-        exit(1);
-	}
-	//frame->SetStatusText(wxString(statusBuf.c_str(), wxConvUTF8));
-	//sizerFull->Layout();
+  if(selectedTreeNode==NULL){
+    return;
+  }
+  
+  string statusBuf;
+  string buf, buf2;
+  switch (selectedTreeNode->dType) {
+  case Return_Type_Object:
+    statusBuf = " Selected Object: ";
+    buf = "You clicked on object: ";
+    
+    break;
+  case Return_Type_Robot:
+    statusBuf = " Selected Robot: ";
+    buf = "You clicked on robot: ";
+    
+    break;
+  case Return_Type_Node:
+    statusBuf = " Selected Link:  of Robot: ";
+    buf = " Link:  of Robot: ";
+    // Do something here if you want to.  you get the idea...
+    
+    break;
+  default:
+    fprintf(stderr, "someone else's problem.");
+    assert(0);
+    exit(1);
+  }
+  //frame->SetStatusText(wxString(statusBuf.c_str(), wxConvUTF8));
+  //sizerFull->Layout();
 }
 
 
