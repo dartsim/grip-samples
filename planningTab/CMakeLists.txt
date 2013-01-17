@@ -22,6 +22,7 @@ include (${CMAKE_INSTALL_PREFIX}/share/grip/GRIPConfig.cmake)
 
 include_directories(${DART_INCLUDEDIR})
 include_directories(${GRIP_INCLUDEDIR})
+link_directories(${DART_LIBRARY_DIRS})
 
 find_Package(OpenGL REQUIRED)
 find_Package(GLUT REQUIRED)
@@ -52,7 +53,7 @@ if (wxWidgets_FOUND)
     add_executable (planningTab ${planningTab_src} ${planningTab_hdr})
   endif()
 
-  target_link_libraries (planningTab ${GRIP_LIBRARIES} ${DART_LIBRARIES} ${wxWidgets_LIBRARIES} )
+  target_link_libraries (planningTab ${GRIP_LIBRARIES} ${DART_LIBRARIES} ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES})
 
 else (wxWidgets_FOUND)
   message ("wxWidgets not found!")
