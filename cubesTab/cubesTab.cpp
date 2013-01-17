@@ -225,7 +225,6 @@ void cubesTab::bake() {
  */
 void cubesTab::retrieveBakedState( int _frame ) {
     mWorld->setState(mBakedStates[_frame]);
-    mWorld->updateSkeletons();
 }
 
 
