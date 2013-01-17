@@ -1,0 +1,25 @@
+<world name="hubo_world_with_box">
+  <!-- include the models here by referenceing their URDFs -->
+  <include filename="hubo.urdf" model_name="jaemi"/>
+  <include filename="table4.urdf" model_name="table4"/>
+  <include filename="cyanCubeObject_small.urdf" model_name="cyanCube"/>
+  <include filename="yellowCubeObject_small.urdf" model_name="yellowCube"/>
+
+  <entity model="jaemi" name="GolemHubo">
+    <origin xyz="0 0 1.0" rpy="0 0 0"/>
+  </entity>
+
+  <entity model="table4" name="table4">
+    <origin xyz="0.53 -0.13 0.40" rpy="1.57 0.0 1.57"/>
+  </entity>
+
+
+  <entity model="cyanCube" name="cyanCube">
+    <origin xyz="0.53 -0.30 0.83" rpy="0.0 0.0 0.0"/>
+  </entity>
+
+  <entity model="yellowCube" name="yellowCube">
+    <origin xyz="0.53 -0.30 0.935" rpy="0.0 0.0 0.0"/>
+  </entity>
+
+</world>
