@@ -1,11 +1,11 @@
 # ***********************************
-# CMakeLists.txt for cubesTab
+# CMakeLists.txt for SimulationHistoryTab
 # 2013-01-15
 # ***********************************
 cmake_minimum_required (VERSION 2.6)
-project (cubesTab)
+project (SimulationHistoryTab)
 
-message (STATUS "Creating Makefile for cubesTab")
+message (STATUS "Creating Makefile for SimulationHistoryTab")
 
 # Setting CMake flags
 if(WIN32)
@@ -27,9 +27,9 @@ endif()
 include (${CMAKE_INSTALL_PREFIX}/share/dart/DARTConfig.cmake)
 include (${CMAKE_INSTALL_PREFIX}/share/grip/GRIPConfig.cmake)
 
-include_directories(${DART_INCLUDEDIR})
-include_directories(${GRIP_INCLUDEDIR})
-link_directories(${DART_LIBRARY_DIRS})
+Find_Package(DART REQUIRED CONFIG)
+INCLUDE_DIRECTORIES( ${DART_INCLUDEDIR} )
+INCLUDE_DIRECTORIES( ${GRIP_INCLUDEDIR} )
 
 # OpenGL and GLUR required for 
 Find_Package(OpenGL REQUIRED)
@@ -37,8 +37,8 @@ Find_Package(GLUT REQUIRED)
 INCLUDE_DIRECTORIES( ${GLUT_INCLUDE_DIRS} )
 
 # Search all header and source files
-set ( cubesTab_src cubesTab.cpp cubesTabApp.cpp )
-set ( cubesTab_hdr cubesTab.h )
+set ( SimulationHistoryTab_src SimulationHistoryTab.cpp SimulationHistoryTabApp.cpp )
+set ( SimulationHistoryTab_hdr SimulationHistoryTab.h )
 
 # Set wxWidgets-related parameters
 if(WIN32)
@@ -57,14 +57,14 @@ if (wxWidgets_FOUND)
 
   # If wxWidgets found, create the executable
   if(MSVC)
-    add_executable (cubesTab WIN32 ${cubesTab_src} ${cubesTab_hdr})
-    set_target_properties ( cubesTab PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
+    add_executable (SimulationHistoryTab WIN32 ${SimulationHistoryTab_src} ${SimulationHistoryTab_hdr})
+    set_target_properties ( SimulationHistoryTab PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
   else()
-    add_executable (cubesTab ${cubesTab_src} ${cubesTab_hdr})
+    add_executable (SimulationHistoryTab ${SimulationHistoryTab_src} ${SimulationHistoryTab_hdr})
   endif()
 
   # Link to GRIP, DART and wxWidgets
-  target_link_libraries (cubesTab ${GRIP_LIBRARIES} ${DART_LIBRARIES} ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES})
+  target_link_libraries (SimulationHistoryTab ${GRIP_LIBRARIES} ${DART_LIBRARIES} ${wxWidgets_LIBRARIES} )
 
 else (wxWidgets_FOUND)
   message ("wxWidgets not found!")

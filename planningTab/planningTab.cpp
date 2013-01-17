@@ -236,15 +236,15 @@ void planningTab::settings() {
   mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(0)->getNode("leftFoot"), mWorld->getObject(0)->getNode(1));
   mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(0)->getNode("rightFoot"), mWorld->getObject(0)->getNode(1));
   
-  Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mWorld->getSkeleton(0)->getNumDofs());
-  Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mWorld->getSkeleton(0)->getNumDofs());
-  Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mWorld->getSkeleton(0)->getNumDofs());
+  Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(0)->getNumDofs());
+  Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mWorld->getRobot(0)->getNumDofs());
+  Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(0)->getNumDofs());
   std::vector<int> ankleDofs(2);
   ankleDofs[0] = 27;
   ankleDofs[1] = 28;
   const Eigen::VectorXd anklePGains = -1000.0 * Eigen::VectorXd::Ones(2);
   const Eigen::VectorXd ankleDGains = -2000.0 * Eigen::VectorXd::Ones(2);
-  mController = new planning::Controller(mWorld->getSkeleton(0), actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
+  mController = new planning::Controller(mWorld->getRobot(0), actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
   planning::PathPlanner<> pathPlanner(*mWorld);
   Eigen::VectorXd goal(7);
   goal << 0.0, -M_PI / 2.0, 0.0, -M_PI / 2.0, 0.0, 0.0, 0.0;
@@ -280,7 +280,7 @@ void planningTab::simulate() {
     counter++;
     printf("Counter: %d Current world time: %f num iter: %d\n", counter, mWorld->mTime, numIter );
     for (int i = 0; i < numIter; i++) {
-      mWorld->getSkeleton(0)->setInternalForces(mController->getTorques(mWorld->getRobot(0)->getPose(), mWorld->getRobot(0)->getQDotVector(), mWorld->mTime));
+      mWorld->getRobot(0)->setInternalForces(mController->getTorques(mWorld->getRobot(0)->getPose(), mWorld->getRobot(0)->getQDotVector(), mWorld->mTime));
       mWorld->step();
     }
 
