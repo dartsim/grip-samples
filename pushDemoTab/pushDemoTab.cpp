@@ -464,12 +464,7 @@ void pushDemoTab::setTimeline() {
  * @brief Store a world state at some step
  */
 void pushDemoTab::bake() {
-
-    VectorXd state(mWorld->mIndices.back());
-    for(int i = 0; i < mWorld->getNumSkeletons(); i++) {
-        state.segment(mWorld->mIndices[i], mWorld->mDofs[i].size()) = mWorld->mDofs[i];
-    }
-    mBakedStates.push_back(state);
+    mBakedStates.push_back(mWorld->getState());
 }
 
 /**
@@ -477,13 +472,8 @@ void pushDemoTab::bake() {
  * @brief Return a vector with the poses stored at frame _frame
  */
 void pushDemoTab::retrieveBakedState( int _frame ) {
-
-  for (int i = 0; i < mWorld->getNumSkeletons(); i++) {
-    int start = mWorld->mIndices[i];
-    int size = mWorld->mDofs[i].size();
-    mWorld->getSkeleton(i)->setPose(mBakedStates[_frame].segment(start, size), false, false);
-  }
-
+    mWorld->setState(mBakedStates[_frame]);
+    mWorld->updateSkeletons();
 }
 
 /**
