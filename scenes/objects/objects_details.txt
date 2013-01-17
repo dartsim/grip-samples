@@ -1,0 +1,8 @@
+2013/01/15
+
+If you need more simple models, you might want to consider using Blender
+
+* blueCube_111.3ds: cube of 0.1 x 0.1 x 0.1m
+* redCube_111.3ds: cube of 0.1 x 0.1 x 0.1m
+* greenCube_221.3ds: cube of 0.2 x 0.2 x 0.1m
+

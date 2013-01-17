@@ -1,0 +1,19 @@
+<world name="cubesWorld">
+  <!-- include the models here by referenceing their URDFs -->
+  <include filename="greenCubeObject.urdf" model_name="greenCube"/>
+  <include filename="blueCubeObject.urdf" model_name="blueCube"/>
+  <include filename="redCubeObject.urdf" model_name="redCube"/>
+
+  <entity model="greenCube" name="greenCube">
+    <origin xyz="0.35 0 1.0" rpy="0 0.45 -0.6"/>
+  </entity>
+
+  <entity model="redCube" name="redCube">
+    <origin xyz="0 0.6 1.5" rpy="0.3 0 0"/>
+  </entity>
+
+  <entity model="blueCube" name="blueCube">
+    <origin xyz="0.0 0.6 0.3" rpy="0 0 0.7"/>
+  </entity>
+
+</world>
