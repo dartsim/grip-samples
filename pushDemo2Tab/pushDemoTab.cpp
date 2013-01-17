@@ -74,6 +74,7 @@ using namespace std;
 enum DynamicSimulationTabEvents {
   id_button_AddFloor = 8345,
   id_button_DoPlanning,
+  id_button_RelocateObjects,
   id_button_SetStart,
   id_button_SetGoal,
   id_button_SetPredefStart,
@@ -98,7 +99,7 @@ string const pushDemoTab::mRA_Nodes[mRA_NumNodes] = {"Body_RSP", "Body_RSR", "Bo
 
 /**
  * @function pushDemoTab
- * @brief Constructor
+ * @brief Constructor (TO BE USED WITH FURNITURE_2)
  */
 pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
 		const wxPoint& pos, const wxSize& size, long style) :
@@ -128,6 +129,7 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
   // Dynamic configuration buttons
   ss3BoxS->Add(new wxButton(this, id_button_AddFloor, wxT("Add floor")), 0, wxALL, 1); 
   ss3BoxS->Add(new wxButton(this, id_button_DoPlanning, wxT("Do Planning")), 0, wxALL, 1); 
+  ss3BoxS->Add(new wxButton(this, id_button_RelocateObjects, wxT("Relocate objects")), 0, wxALL, 1); 
   ss3BoxS->Add(new wxButton(this, id_button_SetTimeline, wxT("Set Timeline")), 0, wxALL, 1); 
   
   // Add the boxes to their respective sizers
@@ -146,14 +148,10 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
   mPredefStartConf.resize( mRA_NumNodes );
   mPredefGoalConf.resize( mRA_NumNodes );
   
-  mPredefStartConf << -1.19381, -0.329518, 0.0, 0.0, 0.0, 0.0, 0.0;
-	// Goal behind the green box (obstacle avoidance)
-	  mPredefGoalConf << 0.928367, -0.237042, -1.51584, -0.960298, -1.01007, 0, 0;
-  //mPredefGoalConf << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
- 
-	  // Start and Conf with furniture_2
-	  //	  * Start Conf:  -0.858702 -0.674395 0 -0.337896 0 0 0
-	  //* Goal Conf:  -0.69115 0.121475 0.284977 -1.02486 0 0 0
+  
+  // Start and Conf with furniture_2
+  mPredefStartConf << -0.858702, -0.674395, 0, -0.337896, 0, 0, 0;
+  mPredefGoalConf << -0.69115, 0.121475, 0.284977, -1.02486, 0, 0, 0;
 
 
 }
@@ -226,6 +224,12 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
   case id_button_DoPlanning: {
     initSettings();
   } break;
+
+    /** Relocate objects */
+  case id_button_RelocateObjects: {
+    relocateObjects();
+  } 
+    break;
 
     /** Set start configuration hard-coded (right arm) */
   case id_button_SetPredefStart : {
@@ -411,6 +415,40 @@ void pushDemoTab::initSettings() {
   mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
   mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("rightFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
   printf("Controller time: %f \n", mWorld->mTime);
+}
+
+/**
+ * @function relocateObjects
+ */
+void pushDemoTab::relocateObjects() {
+
+  int orangeCubeIndex = -1;
+  int yellowCubeIndex = -1;
+
+  for( int i = 0; i < mWorld->getNumObjects(); ++i ) {
+    if( mWorld->getObject(i)->getName() == "orangeCube" ) {
+      orangeCubeIndex = i; break;
+    }
+  }
+
+  for( int i = 0; i < mWorld->getNumObjects(); ++i ) {
+    if( mWorld->getObject(i)->getName() == "yellowCube" ) {
+      yellowCubeIndex = i; break;
+    }
+  }
+
+  if( orangeCubeIndex == -1 || yellowCubeIndex == -1 ) { printf("Did not find orange or yellow object. Exiting and no moving anything \n"); return; }
+  
+  // Set positions
+  mWorld->getObject(orangeCubeIndex)->setPositionXYZ( 0.30, -0.30, 0.83 );
+  mWorld->getObject(yellowCubeIndex)->setPositionXYZ( 0.30, -0.30, 0.935 );
+
+  // Update
+  mWorld->getObject(orangeCubeIndex)->update();
+  mWorld->getObject(yellowCubeIndex)->update();
+
+  // Draw nicely
+  viewer->DrawGLScene();
 }
 
 /**
