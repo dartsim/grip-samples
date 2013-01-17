@@ -1,6 +1,6 @@
 <world name="hubo_world_with_box">
   <!-- include the models here by referenceing their URDFs -->
-  <include filename="hubo.urdf" model_name="jaemi"/>
+  <include filename="hubo_simple.urdf" model_name="jaemi"/>
   <include filename="glassDiningTable2.urdf" model_name="glassDiningTable2"/>
   <include filename="orangeCubeObject_small.urdf" model_name="orangeCube"/>
   <include filename="yellowCubeObject_small.urdf" model_name="yellowCube"/>

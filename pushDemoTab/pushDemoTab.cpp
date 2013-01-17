@@ -128,7 +128,7 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
   // Dynamic configuration buttons
   ss3BoxS->Add(new wxButton(this, id_button_AddFloor, wxT("Add floor")), 0, wxALL, 1); 
   ss3BoxS->Add(new wxButton(this, id_button_DoPlanning, wxT("Do Planning")), 0, wxALL, 1); 
-
+  ss3BoxS->Add(new wxButton(this, id_button_SetTimeline, wxT("Set Timeline")), 0, wxALL, 1); 
   
   // Add the boxes to their respective sizers
   sizerFull->Add(ss1BoxS, 1, wxEXPAND | wxALL, 6);
@@ -146,7 +146,7 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
   mPredefStartConf.resize( mRA_NumNodes );
   mPredefGoalConf.resize( mRA_NumNodes );
   
-  mPredefStartConf << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+  mPredefStartConf << -1.19381, -0.329518, 0.0, 0.0, 0.0, 0.0, 0.0;
   mPredefGoalConf << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
  
 }
@@ -347,11 +347,17 @@ void pushDemoTab::initSettings() {
   mWorld->getRobot(mRobotIndex)->getDof(24)->setValue(20.0 * M_PI/180.0);
   mWorld->getRobot(mRobotIndex)->getDof(27)->setValue(-10.0 * M_PI/180.0);
   mWorld->getRobot(mRobotIndex)->getDof(28)->setValue(-10.0 * M_PI/180.0);
+
+  // Set initial configuration for the right arm
+  for(int i = 0; i < mRA_NumNodes; i++) {
+    mWorld->getRobot(mRobotIndex)->getNode( mRA_Nodes[i].c_str() )->getDof(0)->setValue( mStartConf(i) );
+  }  
   
   // Update the view
   mWorld->getRobot(mRobotIndex)->update();
   viewer->DrawGLScene();
   
+  printf("Set initial configuration for the legs \n");
 
   // Deactivate collision checking between the feet and the ground during planning
   mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
@@ -381,12 +387,31 @@ void pushDemoTab::initSettings() {
     std::cout << "<!> Path planner could not find a path" << std::endl;
   }
   else {
+
+  // Set initial configuration for the legs
+  mWorld->getRobot(mRobotIndex)->getDof(19)->setValue(-10.0 * M_PI/180.0);
+  mWorld->getRobot(mRobotIndex)->getDof(20)->setValue(-10.0 * M_PI/180.0);
+  mWorld->getRobot(mRobotIndex)->getDof(23)->setValue(20.0 * M_PI/180.0);
+  mWorld->getRobot(mRobotIndex)->getDof(24)->setValue(20.0 * M_PI/180.0);
+  mWorld->getRobot(mRobotIndex)->getDof(27)->setValue(-10.0 * M_PI/180.0);
+  mWorld->getRobot(mRobotIndex)->getDof(28)->setValue(-10.0 * M_PI/180.0);
+
+  // Set initial configuration for the right arm
+  for(int i = 0; i < mRA_NumNodes; i++) {
+    mWorld->getRobot(mRobotIndex)->getNode( mRA_Nodes[i].c_str() )->getDof(0)->setValue( mStartConf(i) );
+  }  
+  
+  // Update the view
+  mWorld->getRobot(mRobotIndex)->update();
+
+
     const Eigen::VectorXd maxVelocity = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
     const Eigen::VectorXd maxAcceleration = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
     planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
     std::cout << "-- Trajectory duration: " << trajectory->getDuration() << endl;
     mController->setTrajectory(trajectory, 0.1, trajectoryDofs);
   }
+
   
   // Reactivate collision of feet with floor
   mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
