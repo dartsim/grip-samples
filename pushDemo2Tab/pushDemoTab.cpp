@@ -65,6 +65,7 @@ using namespace std;
 
 // Planning and controller
 #include <planning/PathPlanner.h>
+#include <planning/PathShortener.h>
 #include <planning/Trajectory.h>
 #include "Controller.h"
 // **********************
@@ -393,21 +394,24 @@ void pushDemoTab::initSettings() {
   // Create Planner
   planning::PathPlanner<> pathPlanner(*mWorld);
 
+
   // Call Planner
   std::list<Eigen::VectorXd> path;
   if(!pathPlanner.planPath(mRobotIndex, trajectoryDofs, mStartConf, mGoalConf, path)) {
     std::cout << "<!> Path planner could not find a path" << std::endl;
   }
   else {
+    planning::PathShortener pathShortener(mWorld, mRobotIndex, trajectoryDofs);
+    pathShortener.shortenPath(path);
 
-  mWorld->getRobot(mRobotIndex)->update();
+    mWorld->getRobot(mRobotIndex)->update();
 
-  const Eigen::VectorXd maxVelocity = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
-  const Eigen::VectorXd maxAcceleration = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
-  planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
-  std::cout << "-- Trajectory duration: " << trajectory->getDuration() << endl;
-  //mController->setTrajectory(trajectory, 0.1, trajectoryDofs);
-  mController->setTrajectory(trajectory, 0, trajectoryDofs);
+    const Eigen::VectorXd maxVelocity = 0.6 * Eigen::VectorXd::Ones(mRA_NumNodes);
+    const Eigen::VectorXd maxAcceleration = 0.6 * Eigen::VectorXd::Ones(mRA_NumNodes);
+    planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
+    std::cout << "-- Trajectory duration: " << trajectory->getDuration() << endl;
+    //mController->setTrajectory(trajectory, 0.1, trajectoryDofs);
+    mController->setTrajectory(trajectory, 0, trajectoryDofs);
   }
 
   
@@ -528,7 +532,6 @@ void pushDemoTab::bake() {
  */
 void pushDemoTab::retrieveBakedState( int _frame ) {
     mWorld->setState(mBakedStates[_frame]);
-    mWorld->updateSkeletons();
 }
 
 /**
