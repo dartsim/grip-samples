@@ -388,35 +388,20 @@ void pushDemoTab::initSettings() {
   }
   else {
 
-  // Set initial configuration for the legs
-  mWorld->getRobot(mRobotIndex)->getDof(19)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(20)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(23)->setValue(20.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(24)->setValue(20.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(27)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(28)->setValue(-10.0 * M_PI/180.0);
-
-  // Set initial configuration for the right arm
-  for(int i = 0; i < mRA_NumNodes; i++) {
-    mWorld->getRobot(mRobotIndex)->getNode( mRA_Nodes[i].c_str() )->getDof(0)->setValue( mStartConf(i) );
-  }  
-  
-  // Update the view
   mWorld->getRobot(mRobotIndex)->update();
 
-
-    const Eigen::VectorXd maxVelocity = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
-    const Eigen::VectorXd maxAcceleration = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
-    planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
-    std::cout << "-- Trajectory duration: " << trajectory->getDuration() << endl;
-    mController->setTrajectory(trajectory, 0.1, trajectoryDofs);
+  const Eigen::VectorXd maxVelocity = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
+  const Eigen::VectorXd maxAcceleration = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
+  planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
+  std::cout << "-- Trajectory duration: " << trajectory->getDuration() << endl;
+  mController->setTrajectory(trajectory, 0.1, trajectoryDofs);
   }
 
   
   // Reactivate collision of feet with floor
   mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
   mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("rightFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
-  
+  printf("Controller time: %f \n", mWorld->mTime);
 }
 
 /**
@@ -479,12 +464,7 @@ void pushDemoTab::setTimeline() {
  * @brief Store a world state at some step
  */
 void pushDemoTab::bake() {
-
-    VectorXd state(mWorld->mIndices.back());
-    for(int i = 0; i < mWorld->getNumSkeletons(); i++) {
-        state.segment(mWorld->mIndices[i], mWorld->mDofs[i].size()) = mWorld->mDofs[i];
-    }
-    mBakedStates.push_back(state);
+    mBakedStates.push_back(mWorld->getState());
 }
 
 /**
@@ -492,13 +472,8 @@ void pushDemoTab::bake() {
  * @brief Return a vector with the poses stored at frame _frame
  */
 void pushDemoTab::retrieveBakedState( int _frame ) {
-
-  for (int i = 0; i < mWorld->getNumSkeletons(); i++) {
-    int start = mWorld->mIndices[i];
-    int size = mWorld->mDofs[i].size();
-    mWorld->getSkeleton(i)->setPose(mBakedStates[_frame].segment(start, size), false, false);
-  }
-
+    mWorld->setState(mBakedStates[_frame]);
+    mWorld->updateSkeletons();
 }
 
 /**
