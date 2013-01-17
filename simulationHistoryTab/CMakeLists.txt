@@ -25,10 +25,11 @@ endif()
 
 # Include DART and GRIP config files
 include (${CMAKE_INSTALL_PREFIX}/share/dart/DARTConfig.cmake)
-include (${CMAKE_INSTALL_PREFIX}/share/grip/GRIP_config.cmake)
+include (${CMAKE_INSTALL_PREFIX}/share/grip/GRIPConfig.cmake)
 
 Find_Package(DART REQUIRED CONFIG)
-INCLUDE_DIRECTORIES( ${DART_INCLUDE_DIRS} )
+INCLUDE_DIRECTORIES( ${DART_INCLUDEDIR} )
+INCLUDE_DIRECTORIES( ${GRIP_INCLUDEDIR} )
 
 # OpenGL and GLUR required for 
 Find_Package(OpenGL REQUIRED)
