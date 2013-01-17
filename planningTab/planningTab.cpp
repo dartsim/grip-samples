@@ -186,6 +186,7 @@ void planningTab::addFloor() {
 
 /**
  * @function initSettings
+ * @brief Set dynamic parameters and call planner + controller
  */
 void planningTab::initSettings() {
 

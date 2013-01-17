@@ -73,14 +73,14 @@ using namespace std;
 /** Events */
 enum DynamicSimulationTabEvents {
   id_button_AddFloor = 8345,
+  id_button_DoPlanning,
   id_button_SetStart,
   id_button_SetGoal,
-  id_button_StartSim, // just to be safe
-  id_button_Planning,
-  id_button_Play,
-  id_button_FrameForward,
-  id_button_FrameBackward,
-  id_button_ApplyForce1
+  id_button_SetPredefStart,
+  id_button_SetPredefGoal,
+  id_button_ShowStart,
+  id_button_ShowGoal,
+  id_button_SetTimeline
 };
 
 /** Handler for events **/
@@ -94,7 +94,7 @@ END_EVENT_TABLE()
 IMPLEMENT_DYNAMIC_CLASS(pushDemoTab, GRIPTab)
 
 // Define right arm nodes
-string const pushDemoTab::mRA_TrajNodes[mRA_NumNodes] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "rightUJoint", "rightPalmDummy"}; 
+string const pushDemoTab::mRA_Nodes[mRA_NumNodes] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "rightUJoint", "rightPalmDummy"}; 
 
 /**
  * @function pushDemoTab
@@ -106,30 +106,49 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
   sizerFull = new wxBoxSizer(wxHORIZONTAL);
   
   // Create Static boxes (outline of your Tab)
-  wxStaticBox* ss1Box = new wxStaticBox(this, -1, wxT("Simulation"));
+  wxStaticBox* ss1Box = new wxStaticBox(this, -1, wxT("Planning"));
+  wxStaticBox* ss2Box = new wxStaticBox(this, -1, wxT("Check"));
+  wxStaticBox* ss3Box = new wxStaticBox(this, -1, wxT("Dynamic Settings"));
   
   // Create sizers for these static boxes
   wxStaticBoxSizer* ss1BoxS = new wxStaticBoxSizer(ss1Box, wxVERTICAL);
+  wxStaticBoxSizer* ss2BoxS = new wxStaticBoxSizer(ss2Box, wxVERTICAL);
+  wxStaticBoxSizer* ss3BoxS = new wxStaticBoxSizer(ss3Box, wxVERTICAL);
 
-  // Start - Stop buttons
-  ss1BoxS->Add(new wxButton(this, id_button_AddFloor, wxT("Add floor")), 0, wxALL, 1); 
-  ss1BoxS->Add(new wxButton(this, id_button_SetStart, wxT("Set Start")), 0, wxALL, 1); 
-  ss1BoxS->Add(new wxButton(this, id_button_SetGoal, wxT("Set Goal")), 0, wxALL, 1); 
-  ss1BoxS->Add(new wxButton(this, id_button_Planning, wxT("Do Planning")), 0, wxALL, 1); 
-  ss1BoxS->Add(new wxButton(this, id_button_StartSim, wxT("Simulate")), 0, wxALL, 1); 
+  // Start and goal conf buttons
+  ss1BoxS->Add(new wxButton(this, id_button_SetStart, wxT("Set Start Conf")), 0, wxALL, 1); 
+  ss1BoxS->Add(new wxButton(this, id_button_SetGoal, wxT("Set Goal Conf")), 0, wxALL, 1); 
+  ss1BoxS->Add(new wxButton(this, id_button_SetPredefStart, wxT("Set Predef Start")), 0, wxALL, 1); 
+  ss1BoxS->Add(new wxButton(this, id_button_SetPredefGoal, wxT("Set Predef Goal")), 0, wxALL, 1); 
+
+  // Check buttons (visualize the start and goal states)
+  ss2BoxS->Add(new wxButton(this, id_button_ShowStart, wxT("Show Start")), 0, wxALL, 1); 
+  ss2BoxS->Add(new wxButton(this, id_button_ShowGoal, wxT("Show Goal")), 0, wxALL, 1); 
+
+  // Dynamic configuration buttons
+  ss3BoxS->Add(new wxButton(this, id_button_AddFloor, wxT("Add floor")), 0, wxALL, 1); 
+  ss3BoxS->Add(new wxButton(this, id_button_DoPlanning, wxT("Do Planning")), 0, wxALL, 1); 
+
   
   // Add the boxes to their respective sizers
   sizerFull->Add(ss1BoxS, 1, wxEXPAND | wxALL, 6);
+  sizerFull->Add(ss2BoxS, 1, wxEXPAND | wxALL, 6);
+  sizerFull->Add(ss3BoxS, 1, wxEXPAND | wxALL, 6);
 
   SetSizer(sizerFull);
-  
-  // Initialize Dynamic Variables
 
-  mSimFrame = 0;
-  mPlayFrame = 0;
-  mMovieFrame = 0;
-  mDisplayTimeout = 1000.0 / 30.0;
+  // Additional settings
+  mCurrentFrame = 0;
+
+  mRobotIndex = 0; // We only simulate one robot in this demo so we know its index is 0
+  mGroundIndex = -1; // Default if not created
+
+  mPredefStartConf.resize( mRA_NumNodes );
+  mPredefGoalConf.resize( mRA_NumNodes );
   
+  mPredefStartConf << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+  mPredefGoalConf << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+ 
 }
 
 
@@ -160,7 +179,7 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
       std::cout<<"* Start Conf: ";
       mStartConf.resize( mRA_NumNodes );
       for(int i = 0; i < mRA_NumNodes; i++) {
-	mStartConf[i] = mWorld->getRobot(0)->getNode( mRA_TrajNodes[i].c_str() )->getDof(0)->getValue();
+	mStartConf[i] = mWorld->getRobot(mRobotIndex)->getNode( mRA_Nodes[i].c_str() )->getDof(0)->getValue();
 	std::cout<< " "<<mStartConf[i];
       }  
       std::cout<<std::endl;
@@ -184,7 +203,7 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
       std::cout<<"* Goal Conf: ";
       mGoalConf.resize( mRA_NumNodes );
       for(int i = 0; i < mRA_NumNodes; i++) {
-	mGoalConf[i] = mWorld->getRobot(0)->getNode( mRA_TrajNodes[i].c_str() )->getDof(0)->getValue();
+	mGoalConf[i] = mWorld->getRobot(mRobotIndex)->getNode( mRA_Nodes[i].c_str() )->getDof(0)->getValue();
 	std::cout<< " "<<mGoalConf[i];
       }  
       std::cout<<std::endl;
@@ -195,26 +214,69 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
 
   }
     break;
-  
-    // Start Dynamic Simulation
-  case id_button_Planning: {
-    settings();
 
-  }
-    break;
-    
-    // Start Dynamic Simulation
-  case id_button_StartSim: {
-    simulate();
-  }    
-    break;
+    /** DoPlanning*/
+  case id_button_DoPlanning: {
+    initSettings();
+  } break;
 
-    // Play
-  case id_button_Play: {
+    /** Set start configuration hard-coded (right arm) */
+  case id_button_SetPredefStart : {
+    mStartConf.resize( mRA_NumNodes );
+    mStartConf = mPredefStartConf;
 
-  }
-  break;
+  } break;
 
+    /** Set goal configuration hard-coded (right arm) */
+  case id_button_SetPredefGoal : {
+    mGoalConf.resize( mRA_NumNodes );
+    mGoalConf = mPredefGoalConf;
+  } break;
+
+    /** Show set start configuration */
+  case id_button_ShowStart : {
+    if( mStartConf.size() < 1 ) {  
+      std::cout<<"You have not set a Start configuration yet"<<std::endl; 
+      break; 
+    }   
+
+    // Setting start configuration
+    std::cout<< "Showing start conf for right arm: ";
+    for(int i = 0; i < mRA_NumNodes; i++) {
+      mWorld->getRobot(mRobotIndex)->getNode( mRA_Nodes[i].c_str() )->getDof(0)->setValue( mStartConf(i) );
+      std::cout<<" "<<mStartConf(i)<<" ";
+    }  
+    std::cout<<std::endl;
+
+    mWorld->getRobot(mRobotIndex)->update();
+    viewer->DrawGLScene();
+  } break;
+
+    /** Show set goal configuration */
+  case id_button_ShowGoal : {
+    if( mGoalConf.size() < 1 ) {  
+      std::cout<<"You have not set a Goal configuration yet"<<std::endl; 
+      break; 
+    }   
+
+    // Setting goal configuration
+    std::cout<< "Showing goal conf for right arm: ";
+    for(int i = 0; i < mRA_NumNodes; i++) {
+      mWorld->getRobot(mRobotIndex)->getNode( mRA_Nodes[i].c_str() )->getDof(0)->setValue( mGoalConf(i) );
+      std::cout<<" "<<mGoalConf(i)<<" ";
+    }  
+    std::cout<<std::endl;
+
+    mWorld->getRobot(mRobotIndex)->update();
+    viewer->DrawGLScene();
+  } break;
+
+    /** Set Timeline */
+  case id_button_SetTimeline : {
+    setTimeline();
+  } break;
+      
+    /** Default */
   default: {
     printf("Default button \n");
     }
@@ -226,7 +288,6 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
  * @brief Add a floor *immobile* object
  */
 void pushDemoTab::addFloor() {
-  printf("Adding floor \n");
   robotics::Object* ground = new robotics::Object();
   ground->setName("ground");
   ground->addDefaultRootNode();
@@ -242,139 +303,138 @@ void pushDemoTab::addFloor() {
   mWorld->rebuildCollision();
 
   treeView->CreateFromWorld();
-    
-}
 
-/**
- * @function settings
- */
-void pushDemoTab::settings() {
 
-  // Get the ground
-  int groundIndex = -1;
+  // Get the ground object index
+  mGroundIndex = -1;
   for( int i = 0; i < mWorld->getNumObjects(); ++i ) {
     if( mWorld->getObject(i)->getName() == "ground" ) {
-      groundIndex = i; break;
+      mGroundIndex = i; break;
     }
   }
 
-  if( groundIndex == -1 ) { printf("I did not find the floor! BAD!! EXITING \n"); return; }
-  else { printf("Ground is object %d \n", groundIndex);}
+  if( mGroundIndex == -1 ) { printf("I did not find the floor! EXITING \n"); return; }
+  else { printf("-- Ground is object %d \n", mGroundIndex);}
+    
+  printf("-- Added floor \n");
+}
 
-  // Get the robot
-  int robotIndex = 0;
+/**
+ * @function initSettings
+ * @brief Set initial dynamic parameters and call planner and controller
+ */
+void pushDemoTab::initSettings() {
 
+  // Get the indices of the right arm's DOF
   std::vector<int> trajectoryDofs( mRA_NumNodes);
   printf("Trajectory nodes are: ");
   for(int i = 0; i < mRA_NumNodes; i++) {
-    trajectoryDofs[i] = mWorld->getRobot(robotIndex)->getNode(mRA_TrajNodes[i].c_str())->getDof(0)->getSkelIndex();
+    trajectoryDofs[i] = mWorld->getRobot(mRobotIndex)->getNode(mRA_Nodes[i].c_str())->getDof(0)->getSkelIndex();
     printf(" %f ", trajectoryDofs[i]);
   }
   printf("\n");
   
-  std::vector<int> actuatedDofs(mWorld->getRobot(robotIndex)->getNumDofs() - 6);
+  // Store the actuated joints (all except the first 6 which are only a convenience to locate the robot in the world)
+  std::vector<int> actuatedDofs(mWorld->getRobot(mRobotIndex)->getNumDofs() - 6);
   for(unsigned int i = 0; i < actuatedDofs.size(); i++) {
     actuatedDofs[i] = i + 6;
   }
   
-  mWorld->getRobot(robotIndex)->getDof(19)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(robotIndex)->getDof(20)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(robotIndex)->getDof(23)->setValue(20.0 * M_PI/180.0);
-  mWorld->getRobot(robotIndex)->getDof(24)->setValue(20.0 * M_PI/180.0);
-  mWorld->getRobot(robotIndex)->getDof(27)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(robotIndex)->getDof(28)->setValue(-10.0 * M_PI/180.0);
+  // Set initial configuration for the legs
+  mWorld->getRobot(mRobotIndex)->getDof(19)->setValue(-10.0 * M_PI/180.0);
+  mWorld->getRobot(mRobotIndex)->getDof(20)->setValue(-10.0 * M_PI/180.0);
+  mWorld->getRobot(mRobotIndex)->getDof(23)->setValue(20.0 * M_PI/180.0);
+  mWorld->getRobot(mRobotIndex)->getDof(24)->setValue(20.0 * M_PI/180.0);
+  mWorld->getRobot(mRobotIndex)->getDof(27)->setValue(-10.0 * M_PI/180.0);
+  mWorld->getRobot(mRobotIndex)->getDof(28)->setValue(-10.0 * M_PI/180.0);
   
-  mWorld->getRobot(robotIndex)->update();
+  // Update the view
+  mWorld->getRobot(mRobotIndex)->update();
   viewer->DrawGLScene();
   
 
   // Deactivate collision checking between the feet and the ground during planning
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(robotIndex)->getNode("leftFoot"), mWorld->getObject(groundIndex)->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(robotIndex)->getNode("rightFoot"), mWorld->getObject(groundIndex)->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("rightFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
   
-  Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(robotIndex)->getNumDofs());
-  Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mWorld->getRobot(robotIndex)->getNumDofs());
-  Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(robotIndex)->getNumDofs());
+  // Define PD controller gains
+  Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
+  Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
+  Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
+
+  // Define gains for the ankle PD
   std::vector<int> ankleDofs(2);
   ankleDofs[0] = 27;
   ankleDofs[1] = 28;
   const Eigen::VectorXd anklePGains = -1000.0 * Eigen::VectorXd::Ones(2);
   const Eigen::VectorXd ankleDGains = -2000.0 * Eigen::VectorXd::Ones(2);
-  mController = new planning::Controller(mWorld->getRobot(robotIndex), actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
+
+  // Create controller
+  mController = new planning::Controller(mWorld->getRobot(mRobotIndex), actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
+
+  // Create Planner
   planning::PathPlanner<> pathPlanner(*mWorld);
 
+  // Call Planner
   std::list<Eigen::VectorXd> path;
-  if(!pathPlanner.planPath(robotIndex, trajectoryDofs, mStartConf, mGoalConf, path)) {
-    std::cout << "Path planner could not find a path" << endl;
+  if(!pathPlanner.planPath(mRobotIndex, trajectoryDofs, mStartConf, mGoalConf, path)) {
+    std::cout << "<!> Path planner could not find a path" << std::endl;
   }
   else {
     const Eigen::VectorXd maxVelocity = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
     const Eigen::VectorXd maxAcceleration = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
     planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
-    std::cout << "Trajectory duration: " << trajectory->getDuration() << endl;
+    std::cout << "-- Trajectory duration: " << trajectory->getDuration() << endl;
     mController->setTrajectory(trajectory, 0.1, trajectoryDofs);
   }
   
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(robotIndex)->getNode("leftFoot"), mWorld->getObject(groundIndex)->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(robotIndex)->getNode("rightFoot"), mWorld->getObject(groundIndex)->getNode(1));
+  // Reactivate collision of feet with floor
+  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("rightFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
   
 }
 
 /**
- * @function simulate
+ * @function GRIPEventSimulationBeforeTimeStep
+ * @brief Before each sim step we must set the internal forces 
  */
-void pushDemoTab::simulate() {
+void pushDemoTab::GRIPEventSimulationBeforeTimestep() {
 
-  double totalTime = 6.0;
-  int counter = 0;
+  mWorld->getRobot(mRobotIndex)->setInternalForces(mController->getTorques(mWorld->getRobot(mRobotIndex)->getPose(), mWorld->getRobot(mRobotIndex)->getQDotVector(), mWorld->mTime));
  
-  int numIter = (mDisplayTimeout / 1000.0) / mWorld->mTimeStep;
-
-  while( mWorld->mTime < totalTime ) {
-
-    counter++;
-    printf("Counter: %d Current world time: %f num iter: %d\n", counter, mWorld->mTime, numIter );
-    for (int i = 0; i < numIter; i++) {
-      mWorld->getRobot(0)->setInternalForces(mController->getTorques(mWorld->getRobot(0)->getPose(), mWorld->getRobot(0)->getQDotVector(), mWorld->mTime));
-      mWorld->step();
-    }
-
-    mSimFrame += numIter;
-
-    bake();
-    
-    for (int j = 0; j < mWorld->getNumRobots(); j++) {
-      mWorld->getRobot(j)->update();
-    }
-    for (int j = 0; j < mWorld->getNumObjects(); j++) {
-      mWorld->getObject(j)->update();
-      }
-     viewer->DrawGLScene();
-  }
-
-  printf("Entered in loop %d times \n", counter);
-  SetTimeline();
 }
 
 /**
- * @function SetTimeline
+ * @function GRIPEventSimulationAfterTimeStep
+ * @brief After 30 sim steps we save frames for future playback
  */
-void pushDemoTab::SetTimeline() {
+void pushDemoTab::GRIPEventSimulationAfterTimestep() {
 
-  double T = 6.0;
+  mCurrentFrame++;
+  if( mCurrentFrame % 30 == 0 ) {
+    bake();
+  }
+}
 
-  
+
+/**
+ * @function setTimeline
+ * @brief Store the simulated poses in the Timeline slider for playback
+ */
+void pushDemoTab::setTimeline() {
+
   int numsteps = mBakedStates.size();
-
-  double increment = T/(double)numsteps;
-
-  cout << "-->(+) Updating Timeline - Increment: " << increment << " Total T: " << T << " Steps: " << numsteps << endl;
-
+  
+  double increment = mWorld->mTimeStep;
+  double totalTime = mWorld->mTime;
+  
+  cout << "-->(+) Updating Timeline - Increment: " << increment << " Total T: " << totalTime << " Steps: " << numsteps << endl;
+  
   frame->InitTimer( string("Planner"),increment );
-
-  mPlayFrame = 0;
-  for( int i = 0; i < numsteps; ++i ) {  
-    retrieveBakedState( mPlayFrame );
+  
+  // Set the Time slider with the saved simulated frames
+  for( int i = 0; i < numsteps; ++i ) {
+    retrieveBakedState( i );
     for (int j = 0; j < mWorld->getNumRobots(); j++) {
       mWorld->getRobot(j)->update();
     }
@@ -382,16 +442,16 @@ void pushDemoTab::SetTimeline() {
       mWorld->getObject(j)->update();
     }
     frame->AddWorld( mWorld );
-    mPlayFrame++;
+    
   }
-  printf("Finished setting timeline \n");
+  printf("-- Finished setting timeline \n");
 } 
 
 
 
 /**
  * @function bake
- * @brief
+ * @brief Store a world state at some step
  */
 void pushDemoTab::bake() {
 
@@ -404,7 +464,7 @@ void pushDemoTab::bake() {
 
 /**
  * @function retrieveBakedState
- * @brief 
+ * @brief Return a vector with the poses stored at frame _frame
  */
 void pushDemoTab::retrieveBakedState( int _frame ) {
 

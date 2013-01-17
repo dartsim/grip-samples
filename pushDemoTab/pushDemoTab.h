@@ -36,8 +36,8 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PLANNING_TAB
-#define PLANNING_TAB
+#ifndef __SAMPLE_PUSHDEMO_TAB__
+#define __SAMPLE_PUSHDEMO_TAB__
 
 #include <Tabs/GRIPTab.h>
 #include <Tabs/GRIPThread.h>
@@ -66,36 +66,32 @@ public:
 
   // *************************************  
   // Dynamic Simulation Variables
-  enum playstate_enum {
-    SIMULATE,
-    RECORD,
-    PLAYBACK,
-    PAUSED
-  };
-
-  playstate_enum mPlayState;
-  playstate_enum mPlayStateLast;
-  int mSimFrame;
-  int mPlayFrame;
-  int mMovieFrame;
-  bool mScreenshotScheduled;
-  bool mShowMarker;
-  double mDisplayTimeout;
 
   std::vector<Eigen::VectorXd> mBakedStates;
   planning::Controller* mController;
-  static const string mRA_TrajNodes[];
+
+  static const string mRA_Nodes[];
   int static const mRA_NumNodes = 7;
+
   Eigen::VectorXd mStartConf;
   Eigen::VectorXd mGoalConf;
-  
+  Eigen::VectorXd mPredefStartConf;
+  Eigen::VectorXd mPredefGoalConf;
+
+  int mRobotIndex;
+  int mGroundIndex;
+
+  int mCurrentFrame;
 
   void addFloor();
-  void settings();
-  void simulate();
-  void SetTimeline();
+  void initSettings();
+  void setTimeline();
   void bake();
   void retrieveBakedState( int _frame );
+
+  virtual void GRIPEventSimulationBeforeTimestep(); /**< Implement to apply forces before simulating a dynamic step */
+  virtual void GRIPEventSimulationAfterTimestep(); /**< Implement to save world states in simulation*/
+
   // *************************************
 
   
@@ -111,4 +107,4 @@ public:
     DECLARE_EVENT_TABLE()
     };
 
-#endif
+#endif /**  __SAMPLE_PUSHDEMO_TAB__  */
