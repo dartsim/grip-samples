@@ -243,8 +243,14 @@ void planningTab::initSettings() {
   const Eigen::VectorXd ankleDGains = -2000.0 * Eigen::VectorXd::Ones(2);
 
   // Set the controller
-  mController = new planning::Controller(mWorld->getRobot(robotIndex), actuatedDofs, kP, kD, 
-					 ankleDofs, anklePGains, ankleDGains);
+  mController = new planning::Controller(mWorld->getRobot(robotIndex),
+                                         actuatedDofs,
+                                         kP,
+                                         kD, 
+					 ankleDofs,
+                                         anklePGains,
+                                         ankleDGains,
+                                         mWorld->mTimeStep);
 
   // Set the planner
   planning::PathPlanner<> pathPlanner(*mWorld);
@@ -292,7 +298,7 @@ void planningTab::GRIPEventSimulationBeforeTimestep() {
  * @brief After 30 sim steps we save frames for future playback
  */
 void planningTab::GRIPEventSimulationAfterTimestep() {
-
+    std::cout << "  Time: " << mWorld->mTime << std::endl << std::flush;
   mCurrentFrame++;
   if( mCurrentFrame % 30 == 0 ) {
     bake();

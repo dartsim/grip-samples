@@ -11,8 +11,14 @@ class Trajectory;
 
 class Controller {
 public:
-    Controller(dynamics::SkeletonDynamics* _skel, const std::vector<int> &_actuatedDofs,
-               const Eigen::VectorXd &_kP, const Eigen::VectorXd &_kD, const std::vector<int> &_ankleDofs, const Eigen::VectorXd &_anklePGains, const Eigen::VectorXd &_ankleDGains);
+    Controller(dynamics::SkeletonDynamics* _skel,
+               const std::vector<int> &_actuatedDofs,
+               const Eigen::VectorXd &_kP,
+               const Eigen::VectorXd &_kD,
+               const std::vector<int> &_ankleDofs,
+               const Eigen::VectorXd &_anklePGains,
+               const Eigen::VectorXd &_ankleDGains,
+               const double timeStep = .001);
     virtual ~Controller() {};
 
     void setTrajectory(const Trajectory* _trajectory, double _startTime, const std::vector<int> &_dofs);
@@ -33,6 +39,7 @@ protected:
     const Trajectory* mTrajectory;
     double mStartTime;
     double mPreOffset;
+    double mTimeStep;
     std::vector<int> mAnkleDofs;
     Eigen::VectorXd mAnklePGains;
     Eigen::VectorXd mAnkleDGains;
