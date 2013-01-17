@@ -15,11 +15,11 @@
 
 
   <entity model="cyanCube" name="orangeCube">
-    <origin xyz="0.53 -0.30 0.76" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.53 -0.30 0.83" rpy="0.0 0.0 0.0"/>
   </entity>
 
   <entity model="yellowCube" name="yellowCube">
-    <origin xyz="0.53 -0.30 0.86" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.53 -0.30 0.935" rpy="0.0 0.0 0.0"/>
   </entity>
 
   </entity>
