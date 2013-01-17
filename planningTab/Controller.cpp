@@ -22,14 +22,16 @@ Controller::Controller(dynamics::SkeletonDynamics* _skel,
                        const VectorXd &_kD,
                        const vector<int> &_ankleDofs,
                        const VectorXd &_anklePGains,
-                       const VectorXd &_ankleDGains) :
+                       const VectorXd &_ankleDGains,
+                       const double timeStep) :
     mSkel(_skel),
     mKp(_kP.asDiagonal()),
     mKd(_kD.asDiagonal()),
     mAnkleDofs(_ankleDofs),
     mAnklePGains(_anklePGains),
     mAnkleDGains(_ankleDGains),
-    mTrajectory(NULL)
+    mTrajectory(NULL),
+    mTimeStep(timeStep)
 {
     const int nDof = mSkel->getNumDofs();
 
@@ -65,14 +67,13 @@ VectorXd Controller::getTorques(const VectorXd& _dof, const VectorXd& _dofVel, d
     }
     
     VectorXd torques;
-    const double mTimestep = 0.001;
 
     // SPD controller
-    MatrixXd invM = (mSkel->getMassMatrix() + mKd * mTimestep).inverse();
-    VectorXd p = -mKp * (_dof - mDesiredDofs + (_dofVel - desiredDofVels) * mTimestep);
+    MatrixXd invM = (mSkel->getMassMatrix() + mKd * mTimeStep).inverse();
+    VectorXd p = -mKp * (_dof - mDesiredDofs + _dofVel * mTimeStep);
     VectorXd d = -mKd * (_dofVel - desiredDofVels);
     VectorXd qddot = invM * (-mSkel->getCombinedVector() + p + d);
-    torques = p + d - mKd * qddot * mTimestep;
+    torques = p + d - mKd * qddot * mTimeStep;
 
     // ankle strategy for sagital plane
     Vector3d com = mSkel->getWorldCOM();
