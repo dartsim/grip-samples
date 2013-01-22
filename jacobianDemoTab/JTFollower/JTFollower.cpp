@@ -162,7 +162,7 @@ Eigen::VectorXd JTFollower::GetXYZ( Eigen::VectorXd _q ) {
 
 	
   // Get current XYZ position
-  mWorld->getRobot(mRobotId)->setDofs( mLinks, _q );
+  mWorld->getRobot(mRobotId)->setConfig( mLinks, _q );
   mWorld->getRobot(mRobotId)->update();
   
   Eigen::MatrixXd qTransform = mEENode->getWorldTransform();
