@@ -12,3 +12,18 @@
 *.la
 *.a
 build/
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+*.cmake
+Makefile
+
+# grip output
+.lastload
+
+# vim
+*.swp
+
+# profile
+gmon.out
