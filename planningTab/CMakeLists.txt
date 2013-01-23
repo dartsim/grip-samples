@@ -17,17 +17,16 @@ else ()
   set(CMAKE_CXX_FLAGS_PROFILE "-pg" CACHE STRING "Profiling flags")
 endif()
 
-include (${CMAKE_INSTALL_PREFIX}/share/dart/DARTConfig.cmake)
-include (${CMAKE_INSTALL_PREFIX}/share/grip/GRIPConfig.cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX}/share/grip ${CMAKE_INSTALL_PREFIX}/share/grip")
 
+find_package(DARTExt REQUIRED)
+find_package(DART REQUIRED)
+find_package(GRIP REQUIRED)
+
+include_directories(${DARTExt_INCLUDEDIR})
 include_directories(${DART_INCLUDEDIR})
 include_directories(${GRIP_INCLUDEDIR})
 link_directories(${DART_LIBRARY_DIRS})
-
-find_Package(OpenGL REQUIRED)
-find_Package(GLUT REQUIRED)
-include_directories(${GLUT_INCLUDE_DIRS})
-message(STATUS "${GLUT_glut_LIBRARY}")
 
 # Search all header and source files
 set ( planningTab_src planningTab.cpp planningTabApp.cpp Controller.cpp )
@@ -43,8 +42,8 @@ endif(WIN32)
 find_package (wxWidgets)
 if (wxWidgets_FOUND)
   include (${wxWidgets_USE_FILE})
-  include_directories(${DART_INCLUDE_DIRS} ${GRIP_HEADERS} ${WXWIDGETS_SHARED_INCLUDE_DIRS})
-  link_directories(${CMAKE_SOURCE_DIR}/lib ${GRIP_LIBDIR} ${WXWIDGETS_SHARED_LIBRARY_DIRS} )
+  include_directories( ${WXWIDGETS_SHARED_INCLUDE_DIRS})
+  link_directories( ${WXWIDGETS_SHARED_LIBRARY_DIRS} )
 
   if(MSVC)
     add_executable (planningTab WIN32 ${planningTab_src} ${planningTab_hdr})
@@ -52,8 +51,9 @@ if (wxWidgets_FOUND)
   else()
     add_executable (planningTab ${planningTab_src} ${planningTab_hdr})
   endif()
+message(STATUS "${GRIP_LIBRARIES} ${DART_LIBRARIES} ${DARTExt_LIBRARIES} ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES}")
 
-  target_link_libraries (planningTab ${GRIP_LIBRARIES} ${DART_LIBRARIES} ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES})
+  target_link_libraries (planningTab ${GRIP_LIBRARIES} ${DART_LIBRARIES} ${DARTExt_LIBRARIES} ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES})
 
 else (wxWidgets_FOUND)
   message ("wxWidgets not found!")

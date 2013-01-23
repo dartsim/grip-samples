@@ -24,17 +24,16 @@ else ()
 endif()
 
 # Include DART and GRIP config files
-include (${CMAKE_INSTALL_PREFIX}/share/dart/DARTConfig.cmake)
-include (${CMAKE_INSTALL_PREFIX}/share/grip/GRIPConfig.cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX}/share/grip ${CMAKE_INSTALL_PREFIX}/share/grip")
 
+find_package(DARTExt REQUIRED)
+find_package(DART REQUIRED)
+find_package(GRIP REQUIRED)
+
+include_directories(${DARTExt_INCLUDEDIR})
 include_directories(${DART_INCLUDEDIR})
 include_directories(${GRIP_INCLUDEDIR})
 link_directories(${DART_LIBRARY_DIRS})
-
-# OpenGL and GLUR required for 
-Find_Package(OpenGL REQUIRED)
-Find_Package(GLUT REQUIRED)
-INCLUDE_DIRECTORIES( ${GLUT_INCLUDE_DIRS} )
 
 # Search all header and source files
 set ( cubesTab_src cubesTab.cpp cubesTabApp.cpp )
@@ -52,8 +51,8 @@ endif(WIN32)
 find_package (wxWidgets)
 if (wxWidgets_FOUND)
   include (${wxWidgets_USE_FILE})
-  include_directories(${DART_INCLUDE_DIRS} ${GRIP_HEADERS} ${WXWIDGETS_SHARED_INCLUDE_DIRS})
-  link_directories(${CMAKE_SOURCE_DIR}/lib ${GRIP_LIBDIR} ${WXWIDGETS_SHARED_LIBRARY_DIRS} )
+  include_directories(${WXWIDGETS_SHARED_INCLUDE_DIRS})
+  link_directories(${WXWIDGETS_SHARED_LIBRARY_DIRS})
 
   # If wxWidgets found, create the executable
   if(MSVC)
@@ -64,7 +63,7 @@ if (wxWidgets_FOUND)
   endif()
 
   # Link to GRIP, DART and wxWidgets
-  target_link_libraries (cubesTab ${GRIP_LIBRARIES} ${DART_LIBRARIES} ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES})
+  target_link_libraries (cubesTab ${GRIP_LIBRARIES} ${DART_LIBRARIES} ${DARTExt_LIBRARIES} ${wxWidgets_LIBRARIES} ${Boost_LIBRARIES})
 
 else (wxWidgets_FOUND)
   message ("wxWidgets not found!")
