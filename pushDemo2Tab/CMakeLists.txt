@@ -17,7 +17,8 @@ else ()
   set(CMAKE_CXX_FLAGS_PROFILE "-pg" CACHE STRING "Profiling flags")
 endif()
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX}/share/grip ${CMAKE_INSTALL_PREFIX}/share/grip")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX}/share/dart")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX}/share/grip")
 
 find_package(DARTExt REQUIRED)
 find_package(DART REQUIRED)
@@ -27,6 +28,7 @@ include_directories(${DARTExt_INCLUDEDIR})
 include_directories(${DART_INCLUDEDIR})
 include_directories(${GRIP_INCLUDEDIR})
 link_directories(${DART_LIBRARY_DIRS})
+link_directories(${GRIP_LIBRARY_DIRS})
 
 
 # Search all header and source files
