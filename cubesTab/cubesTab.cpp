@@ -64,7 +64,7 @@ using namespace std;
 #include <dynamics/SkeletonDynamics.h>
 #include <dynamics/ContactDynamics.h>
 #include <dynamics/BodyNodeDynamics.h>
-#include <kinematics/ShapeCube.h>
+#include <kinematics/ShapeBox.h>
 #include <kinematics/Dof.h>
 #include <kinematics/Joint.h>
 #include <robotics/Object.h>
@@ -159,7 +159,7 @@ void cubesTab::addFloor() {
   ground->setName("ground");
   ground->addDefaultRootNode();
   dynamics::BodyNodeDynamics* node = new dynamics::BodyNodeDynamics();
-  node->setShape( new kinematics::ShapeCube( Eigen::Vector3d( 10.0, 10.0, 0.0001), 1.0));
+  node->setShape( new kinematics::ShapeBox( Eigen::Vector3d( 10.0, 10.0, 0.0001), 1.0));
 
   kinematics::Joint* joint = new kinematics::Joint( ground->getRoot(), node );
   ground->addNode( node );
