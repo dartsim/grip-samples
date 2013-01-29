@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 2.8)
+
+add_subdirectory(cubesTab)
+add_subdirectory(jacobianDemoTab)
+add_subdirectory(planningTab)
+add_subdirectory(pushDemo2Tab)
+add_subdirectory(pushDemoTab)
+add_subdirectory(scenesTab)
+add_subdirectory(simulationHistoryTab)
+add_subdirectory(tabEmpty)
+add_subdirectory(tabTemplate)
+add_subdirectory(visualizationTab)
