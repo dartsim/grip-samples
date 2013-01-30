@@ -206,10 +206,10 @@ void VisualizationTab::GRIPEventRender() {
         // length, scale down the force measurements, and figure out
         // which contact points involve to the selected body nodes
         int nContacts = mWorld->mCollisionHandle->getCollisionChecker()->getNumContact();
-        Eigen::Vector3d vs[nContacts];
-        Eigen::Vector3d fs[nContacts];
-        float lens[nContacts];
-        bool selected[nContacts];
+        vector<Eigen::Vector3d> vs(nContacts);
+        vector<Eigen::Vector3d> fs(nContacts);
+        vector<float> lens(nContacts);
+        vector<bool> selected(nContacts);
         float maxl = 0;
         for (int k = 0; k < nContacts; k++) {
             collision_checking::ContactPoint contact = mWorld->mCollisionHandle->getCollisionChecker()->getContact(k);

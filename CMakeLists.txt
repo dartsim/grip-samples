@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+project(grip-samples)
 
 add_subdirectory(cubesTab)
 add_subdirectory(jacobianDemoTab)
