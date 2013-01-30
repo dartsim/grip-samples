@@ -189,23 +189,19 @@ void VisualizationTab::GRIPEventSimulationStart() {
  * @brief
  */
 void VisualizationTab::GRIPEventRender() {
-    // Draw some stuff
     glDisable(GL_FOG);
-
-    // setup - we'll clean these up ourselves
     glEnable(GL_COLOR_MATERIAL);
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_LIGHTING);
 
-    // set some things for ourselves - will be overwritten by later gl calls
     glLineWidth(1.5f);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
     glEnable(GL_LINE_SMOOTH);
     glEnable(GL_POINT_SMOOTH);
 
-    // do drawing
-    if (mWorld && mWorld->mCollisionHandle) {
+    // draw contact points
+    if (checkShowContacts->IsChecked() && mWorld && mWorld->mCollisionHandle) {
         // some preprocessing. calculate vector lengths and find max
         // length, scale down the force measurements, and figure out
         // which contact points involve to the selected body nodes
@@ -222,20 +218,10 @@ void VisualizationTab::GRIPEventRender() {
             lens[k] = (vs[k] - fs[k]).norm();
             if (lens[k] > maxl) maxl = lens[k];
             selected[k] = false;
-            kinematics::BodyNode* conNode = contact.bd1;
-            while (conNode != NULL) { // ascend the tree to see if any
-                                      // ancestors are selected
-                if (conNode == selectedNode) selected[k] = true;
-                conNode = conNode->getParentNode();
-            }
-            conNode = contact.bd2;
-            while (conNode != NULL) {
-                if (conNode == selectedNode) selected[k] = true;
-                conNode = conNode->getParentNode();
+            if (contact.bd1 == selectedNode || contact.bd2 == selectedNode) {
+                selected[k] = true;
             }
         }
-        
-        // then actually do drawing.
         Eigen::Vector3d v;
         Eigen::Vector3d f;
         Eigen::Vector3d vf;
@@ -244,7 +230,7 @@ void VisualizationTab::GRIPEventRender() {
         glBegin(GL_LINES);
         for (int k = 0; k < nContacts; k++) {
             if (selected[k]) {
-                glColor3d(0.0, lens[k] / (2 * maxl) + .5, 0.0);
+                glColor3d(0.0, 1.0, 0.0);
             }
             else {
                 glColor3d(lens[k] / (2 * maxl) + .5, 0.0, 0.0);
@@ -264,11 +250,49 @@ void VisualizationTab::GRIPEventRender() {
         glEnd();
     }
 
-    // clean up after ourselves
-    glColor3f(1.0f,1.0f,1.0f);
-    glEnable(GL_LIGHTING);
-    glDisable(GL_FOG);
-    glDisable(GL_COLOR_MATERIAL);
+    // draw collision meshes
+    if (checkShowCollMesh->IsChecked() && mWorld && selectedNode && selectedNode->getShape()) {
+        renderer::RenderInterface* ri = &viewer->renderer;
+        kinematics::BodyNode* cnode = selectedNode;
+        kinematics::Shape* shape = selectedNode->getShape();
+        const aiScene* sc = shape->getVizMesh();
+        if (shape->getCollisionMesh() != NULL) { sc = shape->getCollisionMesh(); }
+
+        if (sc != NULL) {
+            int verts = 0;
+            const aiNode* nd = sc->mRootNode;
+
+            // put in the proper transform
+            glPushMatrix();
+            double M[16];
+            Eigen::Matrix4d worldTrans = selectedNode->getWorldTransform();
+            for(int i=0;i<4;i++)
+                for(int j=0;j<4;j++)
+                    M[j*4+i] = worldTrans(i, j);
+            glMultMatrixd(M);
+
+            for (unsigned int n = 0; n < nd->mNumMeshes; ++n) {
+                const struct aiMesh* mesh = sc->mMeshes[nd->mMeshes[n]];
+                for (unsigned int t = 0; t < mesh->mNumFaces; ++t) {
+                    const struct aiFace* face = &mesh->mFaces[t];
+                    glBegin(GL_LINE_STRIP);
+                    for(unsigned int i = 0; i < face->mNumIndices; i++) {
+                        int index = face->mIndices[i];
+                        glColor4d(0.0, 0.0, 1.0, 1.0);
+                        if(mesh->mNormals != NULL) 
+                            glNormal3fv(&mesh->mNormals[index].x);
+                        glVertex3fv(&mesh->mVertices[index].x);
+                        verts++;
+                    }
+                    glEnd();
+                }
+            }
+            glPopMatrix();
+        }
+
+        glPopMatrix();
+        glEnd();
+    }
 }
 
 /**
