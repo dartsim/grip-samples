@@ -73,12 +73,16 @@ using namespace std;
 
 /** UI Control IDs */
 enum DynamicSimulationTabEvents {
+    id_checkbox_showcontacts = wxID_HIGHEST,
+    id_checkbox_showcollmesh
 };
 
 /** Handlers for events **/
 BEGIN_EVENT_TABLE(VisualizationTab, wxPanel)
 EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_BUTTON_CLICKED, VisualizationTab::OnButton)
 EVT_COMMAND (wxID_ANY, wxEVT_GRIP_SLIDER_CHANGE, VisualizationTab::OnSlider)
+EVT_CHECKBOX(id_checkbox_showcontacts, VisualizationTab::OnCheckShowContacts)
+EVT_CHECKBOX(id_checkbox_showcollmesh, VisualizationTab::OnCheckShowCollMesh)
 END_EVENT_TABLE()
 
 // Class constructor for the tab: Each tab will be a subclass of GRIPTab
@@ -95,6 +99,14 @@ VisualizationTab::VisualizationTab(wxWindow *parent,
                          long style) :
 GRIPTab(parent, id, pos, size, style) {
     sizerFull = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticBox* ss1Box = new wxStaticBox(this, -1, wxT("Display Options"));
+    wxStaticBoxSizer* ss1BoxS = new wxStaticBoxSizer(ss1Box, wxVERTICAL);
+
+    checkShowContacts = new wxCheckBox(this, id_checkbox_showcontacts, wxT("Show Contact Forces"));
+    checkShowCollMesh = new wxCheckBox(this, id_checkbox_showcollmesh, wxT("Show Collision Mesh"));
+    ss1BoxS->Add(checkShowContacts, 0, wxALL, 1);
+    ss1BoxS->Add(checkShowCollMesh, 0, wxALL, 1);
+    sizerFull->Add(ss1BoxS, 1, wxEXPAND | wxALL, 1);
     SetSizer(sizerFull);
 }
 
@@ -113,6 +125,12 @@ void VisualizationTab::OnButton(wxCommandEvent & _evt) {
         break;
     }
     }
+}
+
+void VisualizationTab::OnCheckShowContacts(wxCommandEvent &evt) {
+}
+
+void VisualizationTab::OnCheckShowCollMesh(wxCommandEvent &evt) {
 }
 
 void VisualizationTab::GRIPEventSceneLoaded() {

@@ -58,13 +58,17 @@ public:
                 const wxSize& size = wxDefaultSize,
                 long style = wxTAB_TRAVERSAL);
     virtual ~VisualizationTab() {};
-	
+
+    wxCheckBox* checkShowContacts;
+    wxCheckBox* checkShowCollMesh;
     wxSizer* sizerFull;
 
     kinematics::BodyNode* selectedNode;
   
     void OnSlider(wxCommandEvent &evt);
     void OnButton(wxCommandEvent &evt);
+    void OnCheckShowContacts(wxCommandEvent &evt);
+    void OnCheckShowCollMesh(wxCommandEvent &evt);
 
     // *************************************  
     virtual void GRIPEventSimulationBeforeTimestep();
