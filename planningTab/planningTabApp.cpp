@@ -4,14 +4,14 @@
  * @author A. Huaman Q.
  */
 #include "GRIPApp.h"
-#include "pushDemoTab.h"
+#include "planningTab.h"
 
 extern wxNotebook* tabView;
 
-class pushDemoTabApp : public GRIPApp {
+class planningTabApp : public GRIPApp {
 	virtual void AddTabs() {
-		tabView->AddPage(new pushDemoTab(tabView), wxT("PlanningTab"));
+		tabView->AddPage(new planningTab(tabView), wxT("Planning Tab"));
 	}
 };
 
-IMPLEMENT_APP(pushDemoTabApp)
+IMPLEMENT_APP(planningTabApp)

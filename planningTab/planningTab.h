@@ -48,15 +48,15 @@ namespace planning { class Controller; }
 /**
  * @class pushDemoTab
  */
-class pushDemoTab : public GRIPTab
+class planningTab : public GRIPTab
 {
 public:
-  pushDemoTab(){};
-  pushDemoTab(wxWindow * parent, wxWindowID id = -1,
+  planningTab(){};
+  planningTab(wxWindow * parent, wxWindowID id = -1,
 	      const wxPoint & pos = wxDefaultPosition,
 	      const wxSize & size = wxDefaultSize,
 	      long style = wxTAB_TRAVERSAL);
-  virtual ~pushDemoTab(){};
+  virtual ~planningTab(){};
 	
   wxSizer* sizerFull;
   

@@ -36,7 +36,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "pushDemoTab.h"
+#include "planningTab.h"
 
 #include <wx/wx.h>
 #include <GUI/Viewer.h>
@@ -86,24 +86,23 @@ enum DynamicSimulationTabEvents {
 };
 
 /** Handler for events **/
-BEGIN_EVENT_TABLE(pushDemoTab, wxPanel)
-EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_BUTTON_CLICKED, pushDemoTab::OnButton)
-EVT_COMMAND (wxID_ANY, wxEVT_GRIP_SLIDER_CHANGE, pushDemoTab::OnSlider)
+BEGIN_EVENT_TABLE(planningTab, wxPanel)
+EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_BUTTON_CLICKED, planningTab::OnButton)
+EVT_COMMAND (wxID_ANY, wxEVT_GRIP_SLIDER_CHANGE, planningTab::OnSlider)
 END_EVENT_TABLE()
 
 
 // Class constructor for the tab: Each tab will be a subclass of GRIPTab
-IMPLEMENT_DYNAMIC_CLASS(pushDemoTab, GRIPTab)
+IMPLEMENT_DYNAMIC_CLASS(planningTab, GRIPTab)
 
 // Define right arm nodes
-string const pushDemoTab::mRA_Nodes[mRA_NumNodes] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "rightUJoint", "rightPalmDummy"}; 
+string const planningTab::mRA_Nodes[mRA_NumNodes] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "rightUJoint", "rightPalmDummy"}; 
 
 /**
  * @function pushDemoTab
  * @brief Constructor (TO BE USED WITH FURNITURE_2)
  */
-pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
-		const wxPoint& pos, const wxSize& size, long style) :
+planningTab::planningTab(wxWindow *parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style) :
   GRIPTab(parent, id, pos, size, style) {
   sizerFull = new wxBoxSizer(wxHORIZONTAL);
   
@@ -162,7 +161,7 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
  * @function OnButton
  * @brief Handles button events
  */
-void pushDemoTab::OnButton(wxCommandEvent & _evt) {
+void planningTab::OnButton(wxCommandEvent & _evt) {
   
   int slnum = _evt.GetId();
   
@@ -299,7 +298,7 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
  * @function addFloor
  * @brief Add a floor *immobile* object
  */
-void pushDemoTab::addFloor() {
+void planningTab::addFloor() {
   robotics::Object* ground = new robotics::Object();
   ground->setName("ground");
   ground->addDefaultRootNode();
@@ -335,7 +334,7 @@ void pushDemoTab::addFloor() {
  * @function initSettings
  * @brief Set initial dynamic parameters and call planner and controller
  */
-void pushDemoTab::initSettings() {
+void planningTab::initSettings() {
 
   // Get the indices of the right arm's DOF
   std::vector<int> trajectoryDofs( mRA_NumNodes);
@@ -423,7 +422,7 @@ void pushDemoTab::initSettings() {
 /**
  * @function relocateObjects
  */
-void pushDemoTab::relocateObjects() {
+void planningTab::relocateObjects() {
 
   int orangeCubeIndex = -1;
   int yellowCubeIndex = -1;
@@ -458,7 +457,7 @@ void pushDemoTab::relocateObjects() {
  * @function GRIPEventSimulationBeforeTimeStep
  * @brief Before each sim step we must set the internal forces 
  */
-void pushDemoTab::GRIPEventSimulationBeforeTimestep() {
+void planningTab::GRIPEventSimulationBeforeTimestep() {
 
   mWorld->getRobot(mRobotIndex)->setInternalForces(mController->getTorques(mWorld->getRobot(mRobotIndex)->getPose(), mWorld->getRobot(mRobotIndex)->getQDotVector(), mWorld->mTime));
  
@@ -468,7 +467,7 @@ void pushDemoTab::GRIPEventSimulationBeforeTimestep() {
  * @function GRIPEventSimulationAfterTimeStep
  * @brief After 30 sim steps we save frames for future playback
  */
-void pushDemoTab::GRIPEventSimulationAfterTimestep() {
+void planningTab::GRIPEventSimulationAfterTimestep() {
 
   mCurrentFrame++;
   if( mCurrentFrame % 30 == 0 ) {
@@ -480,7 +479,7 @@ void pushDemoTab::GRIPEventSimulationAfterTimestep() {
  * @function GRIPEventSimulationStart
  * @brief
  */
-void pushDemoTab::GRIPEventSimulationStart() {
+void planningTab::GRIPEventSimulationStart() {
 
 }
 
@@ -488,7 +487,7 @@ void pushDemoTab::GRIPEventSimulationStart() {
  * @function setTimeline
  * @brief Store the simulated poses in the Timeline slider for playback
  */
-void pushDemoTab::setTimeline() {
+void planningTab::setTimeline() {
 
   int numsteps = mBakedStates.size();
   
@@ -520,7 +519,7 @@ void pushDemoTab::setTimeline() {
  * @function bake
  * @brief Store a world state at some step
  */
-void pushDemoTab::bake() {
+void planningTab::bake() {
     mBakedStates.push_back(mWorld->getState());
 }
 
@@ -528,7 +527,7 @@ void pushDemoTab::bake() {
  * @function retrieveBakedState
  * @brief Return a vector with the poses stored at frame _frame
  */
-void pushDemoTab::retrieveBakedState( int _frame ) {
+void planningTab::retrieveBakedState( int _frame ) {
     mWorld->setState(mBakedStates[_frame]);
 }
 
@@ -536,14 +535,14 @@ void pushDemoTab::retrieveBakedState( int _frame ) {
  * @function OnSlider
  * @brief Handles slider changes
  */
-void pushDemoTab::OnSlider(wxCommandEvent &evt) {
+void planningTab::OnSlider(wxCommandEvent &evt) {
 
 }
 
 
 // This function is called when an object is selected in the Tree View or other
 // global changes to the GRIP world. Use this to capture events from outside the tab.
-void pushDemoTab::GRIPStateChange() {
+void planningTab::GRIPStateChange() {
 	if(selectedTreeNode==NULL){
 		return;
 	}
@@ -575,5 +574,3 @@ void pushDemoTab::GRIPStateChange() {
 	//frame->SetStatusText(wxString(statusBuf.c_str(), wxConvUTF8));
 	//sizerFull->Layout();
 }
-
-

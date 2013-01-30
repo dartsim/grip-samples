@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-project (pushDemoTab)
+project (planningTab)
 
 message (STATUS "Creating Makefile for pushDemoTab")
 
@@ -32,8 +32,8 @@ link_directories(${GRIP_LIBRARY_DIRS})
 
 
 # Search all header and source files
-set ( pushDemoTab_src pushDemoTab.cpp pushDemoTabApp.cpp Controller.cpp )
-set ( pushDemoTab_hdr pushDemoTab.h Controller.h )
+set ( planningTab_src planningTab.cpp planningTabApp.cpp Controller.cpp )
+set ( planningTab_hdr planningTab.h Controller.h )
 
 if(WIN32)
   set (wxWidgets_EXCLUDE_COMMON_LIBRARIES TRUE)
@@ -49,13 +49,13 @@ if (wxWidgets_FOUND)
   link_directories(${WXWIDGETS_SHARED_LIBRARY_DIRS})
 
   if(MSVC)
-    add_executable (pushDemo2Tab WIN32 ${pushDemoTab_src} ${pushDemoTab_hdr})
-    set_target_properties (pushDemo2Tab PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
+    add_executable (planningTab WIN32 ${planningTab_src} ${planningTab_hdr})
+    set_target_properties (planningTab PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
   else()
-    add_executable (pushDemo2Tab ${pushDemoTab_src} ${pushDemoTab_hdr})
+    add_executable (planningTab ${planningTab_src} ${planningTab_hdr})
   endif()
 
-  target_link_libraries (pushDemo2Tab ${GRIP_LIBRARIES} ${DART_LIBRARIES} ${DARTExt_LIBRARIES} ${wxWidgets_LIBRARIES}  ${Boost_LIBRARIES})
+  target_link_libraries (planningTab ${GRIP_LIBRARIES} ${DART_LIBRARIES} ${DARTExt_LIBRARIES} ${wxWidgets_LIBRARIES}  ${Boost_LIBRARIES})
 
 else (wxWidgets_FOUND)
   message ("wxWidgets not found!")
