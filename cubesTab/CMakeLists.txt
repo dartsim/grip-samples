@@ -17,10 +17,14 @@ if(WIN32)
   set (CMAKE_EXE_LINKER_FLAGS "/LTCG")
   set (CMAKE_MODULE_LINKER_FLAGS "/LTCG")
 else ()
-  set (CMAKE_INSTALL_PREFIX /usr )
+  set (CMAKE_INSTALL_PREFIX /usr)
   # Optimization enabled
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2 -O3  -std=c++0x")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2 -O3")
   set(CMAKE_CXX_FLAGS_PROFILE "-pg" CACHE STRING "Profiling flags")
+endif()
+
+if(APPLE)
+  set (CMAKE_INSTALL_PREFIX /usr/local)
 endif()
 
 # Include DART and GRIP config files
@@ -28,7 +32,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX}/share/dart")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX}/share/grip")
 
 find_package(DARTExt REQUIRED)
-find_package(DART REQUIRED)
+find_package(DART REQUIRED CONFIG)
 find_package(GRIP REQUIRED)
 
 include_directories(${DARTExt_INCLUDEDIR})
