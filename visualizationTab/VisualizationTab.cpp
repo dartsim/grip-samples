@@ -307,6 +307,11 @@ void VisualizationTab::GRIPStateChange() {
         exit(1);
     }
     }
+    int type = 0;
+    wxCommandEvent evt(wxEVT_GRIP_UPDATE_AND_RENDER,GetId());
+    evt.SetEventObject(this);
+    evt.SetClientData((void*)&type);
+    GetEventHandler()->AddPendingEvent(evt);
 }
 
 
