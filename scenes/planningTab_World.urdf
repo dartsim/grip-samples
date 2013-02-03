@@ -1,8 +1,0 @@
-<world name="hubo_world_with_box">
-  <!-- include the models here by referenceing their URDFs -->
-  <include filename="hubo_simple.urdf" model_name="jaemi"/>
-  <entity model="jaemi" name="GolemHubo">
-    <origin xyz="0 0 1.0" rpy="0 0 0"/>
-  </entity>
-
-</world>
