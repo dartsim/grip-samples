@@ -74,8 +74,7 @@ using namespace std;
 
 /** Events */
 enum DynamicSimulationTabEvents {
-  id_button_AddFloor = 8345,
-  id_button_DoPlanning,
+  id_button_DoPlanning = 8345,
   id_button_SetStart,
   id_button_SetGoal,
   id_button_SetPredefStart,
@@ -128,7 +127,6 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
   ss2BoxS->Add(new wxButton(this, id_button_ShowGoal, wxT("Show Goal")), 0, wxALL, 1); 
 
   // Dynamic configuration buttons
-  ss3BoxS->Add(new wxButton(this, id_button_AddFloor, wxT("Add floor")), 0, wxALL, 1); 
   ss3BoxS->Add(new wxButton(this, id_button_DoPlanning, wxT("Do Planning")), 0, wxALL, 1);  
   ss3BoxS->Add(new wxButton(this, id_button_SetTimeline, wxT("Set Timeline")), 0, wxALL, 1); 
   
@@ -143,7 +141,6 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
   mCurrentFrame = 0;
 
   mRobotIndex = 0; // We only simulate one robot in this demo so we know its index is 0
-  mGroundIndex = -1; // Default if not created
 
   mPredefStartConf.resize( mRA_NumNodes );
   mPredefGoalPos.resize( mSizePos );
@@ -166,12 +163,6 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
   
   switch( slnum ) {
   
-    // Add Floor for Hubo to fall on :)
-  case id_button_AddFloor: {
-    addFloor();
-  }
-    break;
-
     // Set Start Arm Configuration
   case id_button_SetStart: {
     
@@ -293,41 +284,6 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
   }
 }
 
-/**
- * @function addFloor
- * @brief Add a floor *immobile* object
- */
-void pushDemoTab::addFloor() {
-  robotics::Object* ground = new robotics::Object();
-  ground->setName("ground");
-  ground->addDefaultRootNode();
-  dynamics::BodyNodeDynamics* node = new dynamics::BodyNodeDynamics();
-  node->setShape( new kinematics::ShapeBox( Eigen::Vector3d( 10.0, 10.0, 0.0001), 1.0));
-
-  kinematics::Joint* joint = new kinematics::Joint( ground->getRoot(), node );
-  ground->addNode( node );
-  ground->initSkel();
-  ground->update();
-  ground->setImmobileState( true );
-  mWorld->addObject( ground );
-  mWorld->rebuildCollision();
-
-  treeView->CreateFromWorld();
-
-
-  // Get the ground object index
-  mGroundIndex = -1;
-  for( int i = 0; i < mWorld->getNumObjects(); ++i ) {
-    if( mWorld->getObject(i)->getName() == "ground" ) {
-      mGroundIndex = i; break;
-    }
-  }
-
-  if( mGroundIndex == -1 ) { printf("I did not find the floor! EXITING \n"); return; }
-  else { printf("-- Ground is object %d \n", mGroundIndex);}
-    
-  printf("-- Added floor \n");
-}
 
 /**
  * @function initSettings
@@ -370,8 +326,9 @@ void pushDemoTab::initSettings() {
   printf("Set initial configuration for the legs \n");
 
   // Deactivate collision checking between the feet and the ground during planning
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("rightFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
+  dynamics::SkeletonDynamics* ground = mWorld->getSkeleton("ground");
+  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), ground->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("rightFoot"), ground->getNode(1));
   
   // Define PD controller gains
   Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
@@ -413,8 +370,8 @@ void pushDemoTab::initSettings() {
   }
   
   // Reactivate collision of feet with floor
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("rightFoot"), mWorld->getObject(mGroundIndex)->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), ground->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("rightFoot"), ground->getNode(1));
   printf("Controller time: %f \n", mWorld->mTime);
 }
 

@@ -91,7 +91,6 @@ public:
   int mGoalObjectIndex;
   std::string mGoalObject;
 
-  void addFloor();
   void initSettings();
   void relocateObjects();
   void setTimeline();

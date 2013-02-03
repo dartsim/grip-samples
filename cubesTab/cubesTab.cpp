@@ -74,8 +74,7 @@ using namespace std;
 
 /** Events */
 enum DynamicSimulationTabEvents {
-  id_button_AddFloor = 8345,
-  id_button_SetTimeline
+  id_button_SetTimeline = 8345
 };
 
 /** Handler for events **/
@@ -103,8 +102,6 @@ GRIPTab(parent, id, pos, size, style) {
   // Create sizers for these static boxes
   wxStaticBoxSizer* ss1BoxS = new wxStaticBoxSizer(ss1Box, wxVERTICAL);
   
-  // Add Floor button
-  ss1BoxS->Add(new wxButton(this, id_button_AddFloor, wxT("Add floor")), 0, wxALL, 1); 
   ss1BoxS->Add(new wxButton(this, id_button_SetTimeline, wxT("Set Timeline")), 0, wxALL, 1);   
   
   // Add the boxes to their respective sizers
@@ -133,12 +130,6 @@ void cubesTab::OnButton(wxCommandEvent & _evt) {
   switch( slnum ) {
     
     // Add Floor for cubes to fall on
-  case id_button_AddFloor: {
-    addFloor();
-  }
-    break;
-
-    // Add Floor for cubes to fall on
   case id_button_SetTimeline: {
     setTimeline();
   }
@@ -148,30 +139,6 @@ void cubesTab::OnButton(wxCommandEvent & _evt) {
     printf("Default button \n");
     }
   }
-}
-
-/**
- * @function addFloor
- * @brief Add a floor *immobile* object
- */
-void cubesTab::addFloor() {
-  robotics::Object* ground = new robotics::Object();
-  ground->setName("ground");
-  ground->addDefaultRootNode();
-  dynamics::BodyNodeDynamics* node = new dynamics::BodyNodeDynamics();
-  node->setShape( new kinematics::ShapeBox( Eigen::Vector3d( 10.0, 10.0, 0.0001), 1.0));
-
-  kinematics::Joint* joint = new kinematics::Joint( ground->getRoot(), node );
-  ground->addNode( node );
-  ground->initSkel();
-  ground->update();
-  ground->setImmobileState( true );
-  mWorld->addObject( ground );
-  mWorld->rebuildCollision();
-
-  treeView->CreateFromWorld();
-    
-  printf("--> Added immobile floor \n");
 }
 
 /**
