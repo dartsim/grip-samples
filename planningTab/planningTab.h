@@ -36,76 +36,44 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __SAMPLE_PUSHDEMO_TAB__
-#define __SAMPLE_PUSHDEMO_TAB__
+#ifndef __SAMPLE_PLANNING_TAB__
+#define __SAMPLE_PLANNING_TAB__
 
+#include <vector>
 #include <Tabs/GRIPTab.h>
-#include <Tabs/GRIPThread.h>
-#include <Tools/Constants.h>
 
 namespace planning { class Controller; }
 
-/**
- * @class pushDemoTab
- */
 class planningTab : public GRIPTab
 {
 public:
-  planningTab(){};
-  planningTab(wxWindow * parent, wxWindowID id = -1,
-	      const wxPoint & pos = wxDefaultPosition,
-	      const wxSize & size = wxDefaultSize,
-	      long style = wxTAB_TRAVERSAL);
-  virtual ~planningTab(){};
-	
-  wxSizer* sizerFull;
-  
-  void OnSlider(wxCommandEvent &evt);
-  void OnButton(wxCommandEvent &evt);
-  void GRIPStateChange();
+  planningTab() {};
+  planningTab(wxWindow * parent, wxWindowID id = -1, const wxPoint & pos = wxDefaultPosition, const wxSize & size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+  virtual ~planningTab() {};
 
-  // *************************************  
-  // Dynamic Simulation Variables
+  virtual void GRIPEventSimulationBeforeTimestep();
+  virtual void GRIPEventSceneLoaded();
 
-  std::vector<Eigen::VectorXd> mBakedStates;
+  void onButtonSetStart(wxCommandEvent & _evt);
+  void onButtonSetGoal(wxCommandEvent & _evt);
+  void onButtonSetPredefStart(wxCommandEvent & _evt);
+  void onButtonSetPredefGoal(wxCommandEvent & _evt);
+  void onButtonRelocateObjects(wxCommandEvent & _evt);
+  void onButtonShowStart(wxCommandEvent & _evt);
+  void onButtonShowGoal(wxCommandEvent & _evt);
+  void onButtonPlan(wxCommandEvent & _evt);
+
   planning::Controller* mController;
-
-  static const string mRA_Nodes[];
-  int static const mRA_NumNodes = 7;
-
+  
+  int mRobotIndex;
+  std::vector<int> mArmDofs;
   Eigen::VectorXd mStartConf;
   Eigen::VectorXd mGoalConf;
   Eigen::VectorXd mPredefStartConf;
   Eigen::VectorXd mPredefGoalConf;
 
-  int mRobotIndex;
-  int mGroundIndex;
+  DECLARE_DYNAMIC_CLASS(planningTab)
+  DECLARE_EVENT_TABLE()
+};
 
-  int mCurrentFrame;
-
-  void addFloor();
-  void initSettings();
-  void relocateObjects();
-  void setTimeline();
-  void bake();
-  void retrieveBakedState( int _frame );
-
-  virtual void GRIPEventSimulationBeforeTimestep(); /**< Implement to apply forces before simulating a dynamic step */
-  virtual void GRIPEventSimulationAfterTimestep(); /**< Implement to save world states in simulation*/
-  virtual void GRIPEventSimulationStart(); 
-  // *************************************
-
-  
-  // Thread specific
-  // GRIPThread* thread;
-  
-  // Your Thread routine
-  // call GRIPThread::CheckPoint() regularly
-  // void Thread();
-  // void onCompleteThread();
-  
-  DECLARE_DYNAMIC_CLASS(pushDemoTab)
-    DECLARE_EVENT_TABLE()
-    };
-
-#endif /**  __SAMPLE_PUSHDEMO_TAB__  */
+#endif
