@@ -27,3 +27,7 @@ Makefile
 
 # profile
 gmon.out
+
+# eclipse
+.project
+.cproject
