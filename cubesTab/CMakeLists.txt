@@ -9,23 +9,24 @@ message (STATUS "Creating Makefile for cubesTab")
 
 # Setting CMake flags
 if(WIN32)
-  set (CMAKE_INSTALL_PREFIX "C:/Golems" CACHE PATH "Install prefix" FORCE)
-  message (STATUS "Setup Visual Studio Specific Flags")
-  set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd /Zi /GL /Gy /W1 /EHsc")
-  set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD /Zi /GL /Gy /W1 /EHsc")
-  set (CMAKE_DEBUG_POSTFIX "d")
-  set (CMAKE_EXE_LINKER_FLAGS "/LTCG")
-  set (CMAKE_MODULE_LINKER_FLAGS "/LTCG")
-else ()
+  message(STATUS "Setup Visual Studio Specific Flags")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd /Zi /Gy /W1 /EHsc")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD /Zi /GL /Gy /W1 /EHsc")
+  set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/LTCG")
+elseif(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set (CMAKE_INSTALL_PREFIX /usr)
-  # Optimization enabled
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2 -O3")
-  set(CMAKE_CXX_FLAGS_PROFILE "-pg" CACHE STRING "Profiling flags")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+  set(CMAKE_CXX_FLAGS_PROFILE "-pg" CACHE STRING "Profiling flags") 
+  option(ENABLE_MSSE2 "Enable -msse2 flag" ON)
+else()
+  message(SEND_ERROR "Compiler not supported.")
 endif()
 
 if(APPLE)
   set (CMAKE_INSTALL_PREFIX /usr/local)
 endif()
+
+set(CMAKE_DEBUG_POSTFIX "d")
 
 # Include DART and GRIP config files
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX}/share/dart")
