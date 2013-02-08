@@ -117,10 +117,10 @@ planningTab::planningTab(wxWindow *parent, const wxWindowID id, const wxPoint& p
   mRobotIndex = 0; // We only simulate one robot in this demo so we know its index is 0
 
   // Set predefined start and goal configuration
-  mPredefStartConf.resize(7);
-  mPredefGoalConf.resize(7);
-  mPredefStartConf << -0.858702, -0.674395, 0.0, -0.337896, 0.0, 0.0, 0.0;
-  mPredefGoalConf << -0.69115, 0.121475, 0.284977, -1.02486, 0.0, 0.0, 0.0;
+  mPredefStartConf.resize(6);
+  mPredefGoalConf.resize(6);
+  mPredefStartConf << -0.858702, -0.674395, 0.0, -0.337896, 0.0, 0.0;
+  mPredefGoalConf << -0.69115, 0.121475, 0.284977, -1.02486, 0.0, 0.0;
   mStartConf = mPredefStartConf;
   mGoalConf = mPredefGoalConf;
 }
@@ -138,8 +138,8 @@ void planningTab::GRIPEventSceneLoaded() {
   mWorld->getRobot(mRobotIndex)->update();
 
   // Define right arm nodes
-  const string armNodes[] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "rightUJoint", "rightPalmDummy"}; 
-  mArmDofs.resize(7);
+  const string armNodes[] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "Body_RWP"}; 
+  mArmDofs.resize(6);
   for(int i = 0; i < mArmDofs.size(); i++) {
     mArmDofs[i] = mWorld->getRobot(mRobotIndex)->getNode(armNodes[i].c_str())->getDof(0)->getSkelIndex();
   }
@@ -235,8 +235,8 @@ void planningTab::onButtonPlan(wxCommandEvent & _evt) {
   
   // Deactivate collision checking between the feet and the ground during planning
   dynamics::SkeletonDynamics* ground = mWorld->getSkeleton("ground");
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), ground->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("rightFoot"), ground->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_LAR"), ground->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_RAR"), ground->getNode(1));
   
   // Define PD controller gains
   Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
@@ -248,7 +248,7 @@ void planningTab::onButtonPlan(wxCommandEvent & _evt) {
   ankleDofs[0] = 27;
   ankleDofs[1] = 28;
   const Eigen::VectorXd anklePGains = -1000.0 * Eigen::VectorXd::Ones(2);
-  const Eigen::VectorXd ankleDGains = -2000.0 * Eigen::VectorXd::Ones(2);
+  const Eigen::VectorXd ankleDGains = -200.0 * Eigen::VectorXd::Ones(2);
 
   // Set robot to start configuration
   mWorld->getRobot(mRobotIndex)->setConfig(mArmDofs, mStartConf);
@@ -278,6 +278,6 @@ void planningTab::onButtonPlan(wxCommandEvent & _evt) {
   }
   
   // Reactivate collision of feet with floor
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), ground->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("rightFoot"), ground->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_LAR"), ground->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_RAR"), ground->getNode(1));
 }

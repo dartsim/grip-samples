@@ -1,12 +1,12 @@
 <world name="hubo_world_with_box">
   <!-- include the models here by referenceing their URDFs -->
-  <include filename="hubo.urdf" model_name="jaemi"/>
+  <include filename="huboplus.urdf" model_name="jaemi"/>
   <include filename="glassDiningTable2.urdf" model_name="glassDiningTable2"/>
   <include filename="orangeCubeObject_small.urdf" model_name="orangeCube"/>
   <include filename="yellowCubeObject_small.urdf" model_name="yellowCube"/>
   <!-- <include filename="cyanCubeObject_small.urdf" model_name="cyanCube"/> -->
   <entity model="jaemi" name="GolemHubo">
-    <origin xyz="0 0 1.0" rpy="0 0 0"/>
+    <origin xyz="0 0 0.98" rpy="0 0 0"/>
   </entity>
 
   <entity model="glassDiningTable2" name="glassDiningTable2">

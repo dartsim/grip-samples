@@ -38,7 +38,9 @@ Controller::Controller(dynamics::SkeletonDynamics* _skel, const vector<int> &_ac
         mDesiredDofs[i] = mSkel->getDof(i)->getValue();
     }
 
-    mPreOffset = 0.0;
+    Vector3d com = mSkel->getWorldCOM();
+    double cop = 0.0;
+    mPreOffset = com[0] - cop;
 }
 
 
@@ -75,8 +77,10 @@ VectorXd Controller::getTorques(const VectorXd& _dof, const VectorXd& _dofVel, d
     double offset = com[0] - cop;
 
     for(unsigned int i = 0; i < mAnkleDofs.size(); i++) {
-        torques[mAnkleDofs[i]] = - mAnklePGains[i] * offset - mAnkleDGains[i] * (offset - mPreOffset);
+        torques[mAnkleDofs[i]] = - mAnklePGains[i] * offset - mAnkleDGains[i] * (offset - mPreOffset) / mTimestep;
     }
+
+	cout << - mAnklePGains[0] * offset << "  " << - mAnkleDGains[0] * (offset - mPreOffset) / mTimestep << endl;
 
     mPreOffset = offset;
 
