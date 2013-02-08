@@ -281,3 +281,7 @@ void planningTab::onButtonPlan(wxCommandEvent & _evt) {
   mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_LAR"), ground->getNode(1));
   mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_RAR"), ground->getNode(1));
 }
+
+// Local Variables:
+// c-basic-offset: 2
+// End:
