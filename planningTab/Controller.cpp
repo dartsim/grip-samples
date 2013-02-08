@@ -80,8 +80,6 @@ VectorXd Controller::getTorques(const VectorXd& _dof, const VectorXd& _dofVel, d
         torques[mAnkleDofs[i]] = - mAnklePGains[i] * offset - mAnkleDGains[i] * (offset - mPreOffset) / mTimestep;
     }
 
-	cout << - mAnklePGains[0] * offset << "  " << - mAnkleDGains[0] * (offset - mPreOffset) / mTimestep << endl;
-
     mPreOffset = offset;
 
     return mSelectionMatrix * torques;
