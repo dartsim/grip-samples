@@ -64,7 +64,7 @@ VectorXd Controller::getTorques(const VectorXd& _dof, const VectorXd& _dofVel, d
 
     // SPD controller
     MatrixXd invM = (mSkel->getMassMatrix() + mKd * mTimestep).inverse();
-    VectorXd p = -mKp * (_dof - mDesiredDofs + (_dofVel - desiredDofVels) * mTimestep);
+    VectorXd p = -mKp * (_dof - mDesiredDofs + _dofVel * mTimestep);
     VectorXd d = -mKd * (_dofVel - desiredDofVels);
     VectorXd qddot = invM * (-mSkel->getCombinedVector() + p + d);
     torques = p + d - mKd * qddot * mTimestep;
