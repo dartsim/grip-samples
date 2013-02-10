@@ -6,7 +6,7 @@
 	<link name="link_0">
 		<inertial>
 			<mass value="0.5" />
-			<inertia ixx="0.1667" ixy="0.0" ixz="0.0" iyy="0.1667" iyz="0.0" izz="0.1667" />
+			<inertia ixx="0.000833" ixy="0.0" ixz="0.0" iyy="0.000833" iyz="0.0" izz="0.000833" />
 			<origin xyz="0 0 0" />
 		</inertial>
 		<visual>
