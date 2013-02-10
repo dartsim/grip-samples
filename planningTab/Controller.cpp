@@ -65,6 +65,7 @@ VectorXd Controller::getTorques(const VectorXd& _dof, const VectorXd& _dofVel, d
     const double mTimestep = 0.001;
 
     // SPD controller
+    // J. Tan, K. Liu, G. Turk. Stable Proportional-Derivative Controllers. IEEE Computer Graphics and Applications, Vol. 31, No. 4, pp 34-44, 2011.
     MatrixXd invM = (mSkel->getMassMatrix() + mKd * mTimestep).inverse();
     VectorXd p = -mKp * (_dof - mDesiredDofs + _dofVel * mTimestep);
     VectorXd d = -mKd * (_dofVel - desiredDofVels);
