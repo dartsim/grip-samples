@@ -5,8 +5,8 @@
 	<!-- Link 0 -->
 	<link name="link_0">
 		<inertial>
-			<mass value="1.0" />
-			<inertia ixx="0.00167" ixy="0.0" ixz="0.0" iyy="0.00167" iyz="0.0" izz="0.00167" />
+			<mass value="0.1" />
+			<inertia ixx="0.000167" ixy="0.0" ixz="0.0" iyy="0.000167" iyz="0.0" izz="0.000167" />
 			<origin xyz="0 0 0" />
 		</inertial>
 		<visual>
