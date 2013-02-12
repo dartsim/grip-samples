@@ -71,12 +71,6 @@ class cubesTab : public GRIPTab {
   
   // *************************************  
   // Dynamic Simulation
-  std::vector<Eigen::VectorXd> mBakedStates; /**< Saved states during simulation (for playback ) */
-  
-  void bake(); 
-  void retrieveBakedState( int _frame );
-  void setTimeline();
-
   virtual void GRIPEventSimulationAfterTimestep(); /**< Implement to save world states in simulation*/
   // *************************************
 

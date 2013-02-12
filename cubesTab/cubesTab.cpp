@@ -74,7 +74,6 @@ using namespace std;
 
 /** Events */
 enum DynamicSimulationTabEvents {
-  id_button_SetTimeline = 8345
 };
 
 /** Handler for events **/
@@ -102,8 +101,6 @@ GRIPTab(parent, id, pos, size, style) {
   // Create sizers for these static boxes
   wxStaticBoxSizer* ss1BoxS = new wxStaticBoxSizer(ss1Box, wxVERTICAL);
   
-  ss1BoxS->Add(new wxButton(this, id_button_SetTimeline, wxT("Set Timeline")), 0, wxALL, 1);   
-  
   // Add the boxes to their respective sizers
   sizerFull->Add(ss1BoxS, 1, wxEXPAND | wxALL, 6);
 
@@ -128,13 +125,6 @@ void cubesTab::OnButton(wxCommandEvent & _evt) {
   int slnum = _evt.GetId();
   
   switch( slnum ) {
-    
-    // Add Floor for cubes to fall on
-  case id_button_SetTimeline: {
-    setTimeline();
-  }
-    break;
-    
   default: {
     printf("Default button \n");
     }
@@ -146,54 +136,7 @@ void cubesTab::OnButton(wxCommandEvent & _evt) {
  */
 void cubesTab::GRIPEventSimulationAfterTimestep() {
   printf("AfterTime step \n");
-  bake();
 }
-
-/**
- * @function SetTimeline
- */
-void cubesTab::setTimeline() {
-  
-  int numsteps = mBakedStates.size();
-
-  double increment = mWorld->mTimeStep;
-  double totalTime = mWorld->mTime;
-
-  cout << "-->(+) Updating Timeline - Increment: " << increment << " Total T: " << totalTime << " Steps: " << numsteps << endl;
-
-  frame->InitTimer( string("Planner"),increment );
-
-  // Set the Time slider with the saved simulated frames
-  for( int i = 0; i < numsteps; ++i ) {
-    retrieveBakedState( i );
-    for (int j = 0; j < mWorld->getNumRobots(); j++) {
-      mWorld->getRobot(j)->update();
-    }
-    for (int j = 0; j < mWorld->getNumObjects(); j++) {
-      mWorld->getObject(j)->update();
-    }
-    frame->AddWorld( mWorld );
-  
-  }
-  printf("-- Finished setting timeline \n");
-}
-
-/**
- * @function bake
- * @brief Store world state in a vector for future playback
- */
-void cubesTab::bake() {
-    mBakedStates.push_back(mWorld->getState());
-}
-
-/**
- * @function retrieveBakedState
- * @brief Retrieve state at some frame
- */
-void cubesTab::retrieveBakedState( int _frame ) {
-    mWorld->setState(mBakedStates[_frame]);
-}
-
 
 /**
  * @function GRIPStateChange
