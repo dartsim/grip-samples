@@ -81,7 +81,6 @@ enum DynamicSimulationTabEvents {
   id_button_SetPredefGoal,
   id_button_ShowStart,
   id_button_ShowGoal,
-  id_button_SetTimeline
 };
 
 /** Handler for events **/
@@ -128,7 +127,6 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
 
   // Dynamic configuration buttons
   ss3BoxS->Add(new wxButton(this, id_button_DoPlanning, wxT("Do Planning")), 0, wxALL, 1);  
-  ss3BoxS->Add(new wxButton(this, id_button_SetTimeline, wxT("Set Timeline")), 0, wxALL, 1); 
   
   // Add the boxes to their respective sizers
   sizerFull->Add(ss1BoxS, 1, wxEXPAND | wxALL, 6);
@@ -272,11 +270,6 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
     
   } break;
 
-    /** Set Timeline */
-  case id_button_SetTimeline : {
-    setTimeline();
-  } break;
-      
     /** Default */
   default: {
     printf("Default button \n");
@@ -346,13 +339,12 @@ void pushDemoTab::initSettings() {
   mController = new planning::Controller(mWorld->getRobot(mRobotIndex), actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
 
   // Find path
-  bake();
+  Eigen::VectorXd initState = mWorld->getState();
   std::list<Eigen::VectorXd> path;
   path = getPath();
   planning::PathShortener pathShortener(mWorld, mRobotIndex, trajectoryDofs);
   pathShortener.shortenPath(path);
-
-  retrieveBakedState(0);
+  mWorld->setState(initState);
 
   if( path.size() < 1 ) {
     std::cout << "<!> Path planner could not find a path" << std::endl;
@@ -436,11 +428,6 @@ void pushDemoTab::GRIPEventSimulationBeforeTimestep() {
  * @brief After 30 sim steps we save frames for future playback
  */
 void pushDemoTab::GRIPEventSimulationAfterTimestep() {
-
-  mCurrentFrame++;
-  if( mCurrentFrame % 30 == 0 ) {
-    bake();
-  }
 }
 
 /**
@@ -449,54 +436,6 @@ void pushDemoTab::GRIPEventSimulationAfterTimestep() {
  */
 void pushDemoTab::GRIPEventSimulationStart() {
 
-}
-
-/**
- * @function setTimeline
- * @brief Store the simulated poses in the Timeline slider for playback
- */
-void pushDemoTab::setTimeline() {
-
-  int numsteps = mBakedStates.size();
-  
-  double increment = mWorld->mTimeStep;
-  double totalTime = mWorld->mTime;
-  
-  cout << "-->(+) Updating Timeline - Increment: " << increment << " Total T: " << totalTime << " Steps: " << numsteps << endl;
-  
-  frame->InitTimer( string("Planner"),increment );
-  
-  // Set the Time slider with the saved simulated frames
-  for( int i = 0; i < numsteps; ++i ) {
-    retrieveBakedState( i );
-    for (int j = 0; j < mWorld->getNumRobots(); j++) {
-      mWorld->getRobot(j)->update();
-    }
-    for (int j = 0; j < mWorld->getNumObjects(); j++) {
-      mWorld->getObject(j)->update();
-    }
-    frame->AddWorld( mWorld );
-    
-  }
-  printf("-- Finished setting timeline \n");
-} 
-
-
-
-/**
- * @function bake
- * @brief Store a world state at some step
- */
-void pushDemoTab::bake() {
-    mBakedStates.push_back(mWorld->getState());
-}
-
-/**
- * @function retrieveBakedState
- * @brief Return a vector with the poses stored at frame _frame
- */
-void pushDemoTab::retrieveBakedState( int _frame ) {
-    mWorld->setState(mBakedStates[_frame]);
 }
 
 /**
