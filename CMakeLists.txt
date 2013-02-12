@@ -3,6 +3,7 @@ project(grip-samples)
 
 add_subdirectory(cubesTab)
 add_subdirectory(jacobianDemoTab)
+add_subdirectory(multiTab)
 add_subdirectory(planningTab)
 add_subdirectory(simulationHistoryTab)
 add_subdirectory(tabEmpty)
