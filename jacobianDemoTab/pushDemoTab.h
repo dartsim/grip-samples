@@ -68,7 +68,6 @@ public:
   // *************************************  
   // Dynamic Simulation Variables
 
-  std::vector<Eigen::VectorXd> mBakedStates;
   planning::Controller* mController;
 
   static const string mRA_Nodes[];
@@ -93,9 +92,6 @@ public:
 
   void initSettings();
   void relocateObjects();
-  void setTimeline();
-  void bake();
-  void retrieveBakedState( int _frame );
 
   std::list<Eigen::VectorXd> getPath(); 
 
