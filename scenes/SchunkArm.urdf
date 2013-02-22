@@ -1,13 +1,14 @@
+<?xml version="1.0" ?>
 <!-- lwa3.urdf -->
 
 <robot name="lwa3">
 
-       <!-- Link 0 -->
-       <link name = "L0">
-       	     <visual>
-		<geometry>
-			<mesh filename="schunk/l0.3ds" />
-		</geometry>
+  <!-- Link 0 -->
+  <link name = "L0">
+    <visual>
+			<geometry>
+				<mesh filename="schunk/l0.3ds" />
+			</geometry>
 		</visual>
 	</link> 	
 

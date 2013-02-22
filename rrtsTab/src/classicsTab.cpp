@@ -26,13 +26,18 @@ void classicsTab::plan(const Event& event) {
 	// Call the path planner	
 	PathPlanner <RRT> planner (*mWorld, false, false, 1e-1, 1e6, 0.5);
 	vector <int> links;
-	for(size_t i = 0; i < start.size(); i++) links.push_back(i); 
+	for(size_t i = 0; i < 7; i++) links.push_back(i + 6); 
 	list <VectorXd> path;
 	bool success = planner.planPath(0, links, start, goal, path);
-	printf("done: %lu\n", success);
-	//planner.start_rrt->draw();
-	
-	
+	printf("\n\ndone: %d, traj. length: %lu\n", success, path.size());
+	cout << "start: " << start.transpose() << endl;
+	cout << "goal: " << goal.transpose() << endl;
+
+	if(success) {
+		list <VectorXd>::iterator it = path.begin();
+		for(size_t i = 0; it != path.end(); it++, i++) 
+			cout << i << ": " << it->transpose() << endl;
+	}
 }
 
 /* ********************************************************************************************* */
