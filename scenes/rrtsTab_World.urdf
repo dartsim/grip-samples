@@ -1,0 +1,17 @@
+<world name="schunk_with_desktop">
+	
+	<!-- Include the models by including either the complete urdf or referencing the file name -->
+	<include filename="SchunkArm.urdf" model_name="schunk_arm"/>
+  <include filename="glassDiningTable2.urdf" model_name="glassDiningTable2"/>
+
+	<!-- Construct the world -->
+	<entity model="schunk_arm" name="SchunkArm">
+		<origin xyz="1.6 0.0 0.800" rpy="-1.57 1.57 0"/>
+	</entity>
+
+	<entity model="glassDiningTable2" name="glassDiningTable2">
+		<origin xyz="1.6 0.0 0.45" rpy="1.57 0.0 0.0"/>
+	</entity>
+
+
+</world> 
