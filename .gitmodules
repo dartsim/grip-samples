@@ -1,0 +1,3 @@
+[submodule "scenes/hubo-models"]
+	path = scenes/hubo-models
+	url = git@github.com:golems/hubo-models.git
