@@ -53,7 +53,6 @@ public:
 		ctrl_stepSize,												///< The step size between nearest neighbor towards random
 		ctrl_goalBias,												///< The bias [0,1] to extend towards random node vs. goal
 		ctrl_numIters,												///< The maximum number of random samples 
-		ctrl_numNeighbors,										///< The # neighbors in bidirectional search to extend
 		check_bidir,													///< For bidirectional implementation 
 		check_short 													///< To shorten goal-biased/connect paths
 	};
@@ -62,7 +61,6 @@ public:
 	wxTextCtrl* stepSizeCtrl;								///< To set the step size in baseline/gb/connect
 	wxTextCtrl* goalBiasCtrl;								///< To set the goal biase in gb/connect
 	wxTextCtrl* numItersCtrl;								///< To set the # max iterations in baseline/gb/connect
-	wxTextCtrl* numNeighborsCtrl;						///< To set the # nearest neighbors (bidirectional) 
 	std::vector <Eigen::VectorXd> baked;		///< The saved states after a path is executed for drawing
 
 public:
@@ -71,9 +69,10 @@ public:
 	Eigen::VectorXd start;									///< The start state
 	Eigen::VectorXd goal;										///< The goal state
 	double stepSize;												///< Step size between nearest neighbor towards random
-	double goalBise;												///< The bias [0,1] to extend towards random node vs. goal
-	size_t numIters;												///< The maximum number of random samples 
-	size_t numNeighbors;                    ///< The # neighbors in bidirectional search to extend
+	double goalBias;												///< The bias [0,1] to extend towards random node vs. goal
+	size_t numNodes;												///< The maximum number of random samples 
+	list <Eigen::VectorXd> path;						///< The path output from the last planner call
+	planning::PathPlanner <planning::RRT> planner; 	///< The planner that was used for the last path
 
 public:
 	// Mandatory interface functions
@@ -84,9 +83,10 @@ public:
   virtual ~classicsTab(){};				///< Destructor
   void OnButton(wxCommandEvent &evt);			///< Handle button events
   void OnSlider(wxCommandEvent &evt) {}		///< Necessary for compilation (bug!)
+  void OnText(wxCommandEvent &evt);				///< To process text inputs to controllers
 
 	/// Creates a sizer that includes a text ctrl and a static text explaining expected input
-	wxSizer* createTextBox(wxTextCtrl* ctrl, const std::string& value, const std::string& definition);
+	wxSizer* createTextBox(wxTextCtrl*& ctrl, const std::string& value, const std::string& definition);
 
 public:
 	// Tab functions
@@ -100,9 +100,6 @@ public:
 	// Project functions
 
 	void plan (const Event& event);					///< Perform rgd with the given constraint
-	bool rgdNewConfig(Eigen::VectorXd& sample, Eigen::VectorXd near, Event ev); ///< RGD algorithm
-	std::pair<double,double> 
-	taskError(Eigen::VectorXd& sample, Eigen::VectorXd near, Event ev);	///< Task space error
 
 public:
 	// wxWidget stuff

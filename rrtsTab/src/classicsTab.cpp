@@ -12,22 +12,12 @@ using namespace planning;
 using namespace std;
 
 /* ********************************************************************************************* */
-bool classicsTab::rgdNewConfig(Eigen::VectorXd& sample, Eigen::VectorXd near, Event event) {
-}
-
-/* ********************************************************************************************* */
-pair<double, double> classicsTab::taskError(Eigen::VectorXd& sample, Eigen::VectorXd near, Event event) {
-
-}
-
-/* ********************************************************************************************* */
 void classicsTab::plan(const Event& event) {
 	
 	// Call the path planner	
-	PathPlanner <RRT> planner (*mWorld, false, false, 1e-1, 1e6, 0.5);
+	planner = PathPlanner <RRT> (*mWorld, false, false, stepSize, numNodes, goalBias);
 	vector <int> links;
 	for(size_t i = 0; i < 7; i++) links.push_back(i + 6); 
-	list <VectorXd> path;
 	bool success = planner.planPath(0, links, start, goal, path);
 	printf("\n\ndone: %d, traj. length: %lu\n", success, path.size());
 	cout << "start: " << start.transpose() << endl;
@@ -38,6 +28,9 @@ void classicsTab::plan(const Event& event) {
 		for(size_t i = 0; it != path.end(); it++, i++) 
 			cout << i << ": " << it->transpose() << endl;
 	}
+
+	// Draw the path
+	drawPath(path);
 }
 
 /* ********************************************************************************************* */
@@ -47,6 +40,20 @@ classicsTab::classicsTab(wxWindow *parent, const wxWindowID id, const wxPoint& p
 	// Set the sizer
   sizerFull = new wxBoxSizer(wxHORIZONTAL);
   
+ 	// =====================================================================
+	// 0. Setup the initial values
+
+	// Choose the values
+	stepSize = 1e-2;
+	goalBias = 0.3;
+	numNodes = 1e6;
+
+	// Write them in text mode for the controllers
+	char stepSizeStr [16], goalBiasStr [16], numNodesStr [16];
+	sprintf(stepSizeStr, "%1.2lf", stepSize);
+	sprintf(goalBiasStr, "%1.2lf", goalBias);
+	sprintf(numNodesStr, "%lu", numNodes);
+
  	// =====================================================================
 	// 1. Create the algorithm box for baseline, goal-biased and connect
 
@@ -92,10 +99,9 @@ classicsTab::classicsTab(wxWindow *parent, const wxWindowID id, const wxPoint& p
 
 	wxStaticBox* paramBox = new wxStaticBox(this, -1, wxT("Parameters"));
 	wxStaticBoxSizer* paramBoxSizer = new wxStaticBoxSizer(paramBox, wxVERTICAL);
-	paramBoxSizer->Add(createTextBox(stepSizeCtrl, "0.01",  "Step size:   "), 0, wxALL, 2);
-	paramBoxSizer->Add(createTextBox(goalBiasCtrl, "0.3",   "Goal bias:  "), 0, wxALL, 2);
-	paramBoxSizer->Add(createTextBox(numItersCtrl, "100000","Iterations: "), 0, wxALL, 2);
-	paramBoxSizer->Add(createTextBox(numNeighborsCtrl, "10","Neighbors:"), 0, wxALL, 2);
+	paramBoxSizer->Add(createTextBox(stepSizeCtrl, stepSizeStr,  "Step size:   "), 0, wxALL, 2);
+	paramBoxSizer->Add(createTextBox(goalBiasCtrl, goalBiasStr,   "Goal bias:  "), 0, wxALL, 2);
+	paramBoxSizer->Add(createTextBox(numItersCtrl, numNodesStr ,"Iterations: "), 0, wxALL, 2);
 
  	// =====================================================================
 	// 5. Create the display box to view trajectories and joint space RRTs
@@ -134,11 +140,12 @@ classicsTab::classicsTab(wxWindow *parent, const wxWindowID id, const wxPoint& p
 }
 
 /* ********************************************************************************************* */
-wxSizer* classicsTab::createTextBox(wxTextCtrl* ctrl, const string& value, const string& def) {
+wxSizer* classicsTab::createTextBox(wxTextCtrl*& ctrl, const string& value, const string& def) {
 
 	// Create the sizer and the ctrl.
 	wxSizer* box = new wxBoxSizer(wxHORIZONTAL);
-	ctrl = new wxTextCtrl(this, ctrl_goalBias, wxString(value.c_str(), wxConvUTF8));
+	ctrl = new wxTextCtrl(this, ctrl_goalBias, wxString(value.c_str(), wxConvUTF8), wxDefaultPosition, 
+		wxDefaultSize, wxTE_PROCESS_ENTER);
 
 	// Create the static text and add the text and the ctrl to the sizer
 	box->Add(new wxStaticText(this, wxID_ANY, wxString(def.c_str(), wxConvUTF8)), 0, wxALL, 6);
@@ -165,6 +172,14 @@ void classicsTab::OnButton(wxCommandEvent& evt) {
 		break;
 		case button_algoBaseline:
 			plan(button_algoBaseline);
+		break;
+		case button_showTraj:
+			drawPath(path);
+		break;
+		case button_showRRT:
+			if(path.empty()) printf("Path empty\n");
+			else if(path.front().size() != 2) printf("Bad #dof\n");
+			else planner.start_rrt->draw();
 		break;
 	} 
 }
@@ -240,10 +255,30 @@ void classicsTab::prepareVideo () {
 }
 
 /* ********************************************************************************************* */
+void classicsTab::OnText(wxCommandEvent &evt) {
+
+	// Set the corresponding value to the text controller and reset its 'modified' state
+	if(stepSizeCtrl->IsModified()) {
+		stepSizeCtrl->SetModified(false);
+		stepSize = atof(string(stepSizeCtrl->GetValue().mb_str()).c_str());
+	}
+	else if(goalBiasCtrl->IsModified()) {
+		goalBiasCtrl->SetModified(false);
+		goalBias = atof(string(goalBiasCtrl->GetValue().mb_str()).c_str());
+	}
+	else if(numItersCtrl->IsModified()) {
+		numItersCtrl->SetModified(false);
+		numNodes = atoi(string(numItersCtrl->GetValue().mb_str()).c_str());
+	}
+}
+
+/* ********************************************************************************************* */
 // Handler for events
 BEGIN_EVENT_TABLE(classicsTab, wxPanel)
 	EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_BUTTON_CLICKED, classicsTab::OnButton)
 	EVT_COMMAND (wxID_ANY, wxEVT_GRIP_SLIDER_CHANGE, classicsTab::OnSlider)
+	EVT_TEXT_ENTER (wxID_ANY, classicsTab::OnText)
+	EVT_SIZE (classicsTab::OnSize)
 END_EVENT_TABLE()
 
 // Class constructor for the tab: Each tab will be a subclass of GRIPTab
