@@ -26,9 +26,12 @@
 #include <kinematics/Dof.h>
 #include <kinematics/Joint.h>
 #include <planning/PathPlanner.h>
+#include <planning/PathShortener.h>
 #include <robotics/Object.h>
 #include <robotics/Robot.h>
 
+#include <sys/time.h>
+#include <unistd.h>
 #include <iostream>
 #include <fstream>
 #include <Eigen/Dense>
@@ -71,6 +74,8 @@ public:
 	double stepSize;												///< Step size between nearest neighbor towards random
 	double goalBias;												///< The bias [0,1] to extend towards random node vs. goal
 	size_t numNodes;												///< The maximum number of random samples 
+	bool bidirectional;											///< The bidirectional option
+	bool shortenTraj;												///< The option to shorten the output trajectory
 	list <Eigen::VectorXd> path;						///< The path output from the last planner call
 	planning::PathPlanner <planning::RRT> planner; 	///< The planner that was used for the last path
 
@@ -82,11 +87,19 @@ public:
 		const wxSize & size = wxDefaultSize, long style = wxTAB_TRAVERSAL);		
   virtual ~classicsTab(){};				///< Destructor
   void OnButton(wxCommandEvent &evt);			///< Handle button events
+	void OnCheckBox(wxCommandEvent& evt);		///< Handle checkbox events
   void OnSlider(wxCommandEvent &evt) {}		///< Necessary for compilation (bug!)
   void OnText(wxCommandEvent &evt);				///< To process text inputs to controllers
 
 	/// Creates a sizer that includes a text ctrl and a static text explaining expected input
 	wxSizer* createTextBox(wxTextCtrl*& ctrl, const std::string& value, const std::string& definition);
+
+	/// Timer to reset the error messages from the statusbar
+	struct BarTimer : public wxTimer {
+		size_t field;							///< The field to reset (left: 0, right: 1)
+		void Notify();						///< This function is called after 't' time passes
+		void Start(size_t ms, size_t f);			///< The function to start the timer
+	} timer;
 
 public:
 	// Tab functions

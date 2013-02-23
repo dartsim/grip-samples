@@ -11,11 +11,55 @@ using namespace Eigen;
 using namespace planning;
 using namespace std;
 
+#define sBool(x) ((x) ? ("yes") : ("no"))
+
 /* ********************************************************************************************* */
 void classicsTab::plan(const Event& event) {
 	
+	// ======================================================================
+	// Setup for the plan call
+
+	// Sanity check that a world exists and there is a robot
+	if((mWorld == NULL) || (mWorld->getNumRobots() == 0)) {
+		frame->GetStatusBar()->SetStatusText(wxT("ERROR: There is no world or a robot to plan with!"), 1);
+		timer.Start(1000, 1);	
+		return;
+	}
+
+	// Set the call options according to the specific plan button
+	bool connect = false;
+	string plannerName;
+	double executedGoalBias = goalBias; 
+	if(event == button_algoBaseline) { 
+		plannerName = string("Baseline");
+		executedGoalBias = 0.0;
+	}
+	else if(event == button_algoConnect)  {
+		connect = true;
+		plannerName = string("Connect");
+	}
+	else if(event == button_algoGoalBiased) {
+		plannerName = string("Biased");
+	}
+
+	// ======================================================================
+	// Make the call and visualize the result
+
+	// Print a status message with the input arguments:
+	char message [128];
+	sprintf(message, "%s: %g steps, %g nodes, %g bias, %s con., %s bi., %s short", plannerName.c_str(),
+		stepSize, (double) numNodes, executedGoalBias, sBool(connect), sBool(bidirectional), sBool(shortenTraj));
+	frame->GetStatusBar()->SetStatusText(wxString(message, wxConvUTF8), 0);
+
+	// Start the timer
+	struct timeval startTime, endTime;
+	gettimeofday(&startTime, NULL);
+
 	// Call the path planner	
-	planner = PathPlanner <RRT> (*mWorld, false, false, stepSize, numNodes, goalBias);
+	path.clear();
+	printf("Calling the planner with the arguments: stepSize: %lf, numNodes: %lu, goalBias: %lf\n", stepSize, 
+			numNodes, executedGoalBias);
+	planner = PathPlanner <RRT> (*mWorld, false, connect, stepSize, numNodes, executedGoalBias);
 	vector <int> links;
 	for(size_t i = 0; i < 7; i++) links.push_back(i + 6); 
 	bool success = planner.planPath(0, links, start, goal, path);
@@ -23,14 +67,36 @@ void classicsTab::plan(const Event& event) {
 	cout << "start: " << start.transpose() << endl;
 	cout << "goal: " << goal.transpose() << endl;
 
-	if(success) {
-		list <VectorXd>::iterator it = path.begin();
-		for(size_t i = 0; it != path.end(); it++, i++) 
-			cout << i << ": " << it->transpose() << endl;
+	// End the timer
+  gettimeofday(&endTime, NULL);
+  long seconds  = endTime.tv_sec  - startTime.tv_sec;
+  long useconds = endTime.tv_usec - startTime.tv_usec;
+	long mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+
+	// Shorten the path if necessary
+	if(shortenTraj) {
+		PathShortener pathShortener (mWorld, 0, links, stepSize);
+		pathShortener.shortenPath(path);
 	}
 
 	// Draw the path
-	drawPath(path);
+	if(success) {
+
+		// Update the message
+		sprintf(message, "%s: path found with %lu nodes in %g ms. RRT(s) size: %1.2e.", plannerName.c_str(),
+			path.size(), (double) mtime, (double) planner.start_rrt->getSize() + 
+			+ (planner.goal_rrt == NULL ? 0 : planner.goal_rrt->getSize()));
+		frame->GetStatusBar()->SetStatusText(wxString(message, wxConvUTF8), 0);
+		timer.Start(2000, 0);	
+
+		// Draw the execution of the path
+		drawPath(path);
+	}
+	else {
+		sprintf(message, "%s: could not find path.", plannerName.c_str());
+		frame->GetStatusBar()->SetStatusText(wxString(message, wxConvUTF8), 0);
+		timer.Start(1000, 0);	
+	}
 }
 
 /* ********************************************************************************************* */
@@ -47,6 +113,8 @@ classicsTab::classicsTab(wxWindow *parent, const wxWindowID id, const wxPoint& p
 	stepSize = 1e-2;
 	goalBias = 0.3;
 	numNodes = 1e6;
+	bidirectional = true;
+	shortenTraj = true;
 
 	// Write them in text mode for the controllers
 	char stepSizeStr [16], goalBiasStr [16], numNodesStr [16];
@@ -154,11 +222,23 @@ wxSizer* classicsTab::createTextBox(wxTextCtrl*& ctrl, const string& value, cons
 }
 
 /* ********************************************************************************************* */
+void classicsTab::OnCheckBox(wxCommandEvent& evt) {
+
+	size_t evtId = evt.GetId();
+	if(evtId == check_bidir)
+		bidirectional = (bool) evt.GetSelection();
+	else if(evtId == check_short)
+		shortenTraj = (bool) evt.GetSelection();
+}
+
+/* ********************************************************************************************* */
 void classicsTab::OnButton(wxCommandEvent& evt) {
  
 	// Get the button and switch on the set symbols
   Event button_num = (Event) evt.GetId();
   switch (button_num) {
+
+		// Setup plan arguments
 	  case button_setStart:
 		case button_setGoal:
 			setState(button_num);
@@ -167,21 +247,40 @@ void classicsTab::OnButton(wxCommandEvent& evt) {
 	  case button_showGoal:
 			showState(button_num);
 		break;
-		case button_prepareVideo:
-			prepareVideo();
-		break;
-		case button_algoBaseline:
-			plan(button_algoBaseline);
-		break;
-		case button_showTraj:
-			drawPath(path);
-		break;
+
+		// Carry out a specific plan
+		case button_algoBaseline: 
+		case button_algoGoalBiased:
+		case button_algoConnect: 
+			plan(button_num); break;
+
+		// Showing results after plan is completed
+		case button_prepareVideo: prepareVideo(); break;
+		case button_showTraj: drawPath(path); break;
 		case button_showRRT:
-			if(path.empty()) printf("Path empty\n");
-			else if(path.front().size() != 2) printf("Bad #dof\n");
+			if(path.empty()) {
+				frame->GetStatusBar()->SetStatusText(wxT("ERROR: There is no planned path!"), 1);
+				timer.Start(1000, 1);	
+			}
+			else if(path.front().size() != 2) {
+				frame->GetStatusBar()->SetStatusText(wxT("ERROR: The # of DOFs should be 2 or 3!"), 1);
+				timer.Start(1000, 1);	
+			}
 			else planner.start_rrt->draw();
 		break;
 	} 
+}
+
+/* ********************************************************************************************* */
+void classicsTab::BarTimer::Start(size_t ms, size_t field_) {
+	field = field_;
+	wxTimer::Start(ms);
+}
+	
+/* ********************************************************************************************* */
+void classicsTab::BarTimer::Notify() {
+	frame->GetStatusBar()->SetStatusText(wxT(""), field);
+	Stop();
 }
 
 /* ********************************************************************************************* */
@@ -276,9 +375,9 @@ void classicsTab::OnText(wxCommandEvent &evt) {
 // Handler for events
 BEGIN_EVENT_TABLE(classicsTab, wxPanel)
 	EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_BUTTON_CLICKED, classicsTab::OnButton)
+	EVT_COMMAND (wxID_ANY, wxEVT_COMMAND_CHECKBOX_CLICKED, classicsTab::OnCheckBox)
 	EVT_COMMAND (wxID_ANY, wxEVT_GRIP_SLIDER_CHANGE, classicsTab::OnSlider)
 	EVT_TEXT_ENTER (wxID_ANY, classicsTab::OnText)
-	EVT_SIZE (classicsTab::OnSize)
 END_EVENT_TABLE()
 
 // Class constructor for the tab: Each tab will be a subclass of GRIPTab
