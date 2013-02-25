@@ -5,7 +5,7 @@
   <!-- <include filename="yellowCubeObject_small.urdf" model_name="yellowCube"/> -->
   <include filename="smallRedBall.urdf" model_name="smallRedBall"/> 
   <entity model="huboplus" name="GolemHubo">
-    <origin xyz="0 0 1.0" rpy="0 0 0"/>
+    <origin xyz="0 0 0.955" rpy="0 0 0"/>
   </entity>
 
   <entity model="table4" name="table4">
