@@ -71,13 +71,12 @@ public:
   planning::Controller* mController;
 
   static const string mRA_Nodes[];
-  int static const mRA_NumNodes = 7;
+  int static const mRA_NumNodes = 6;
   int static const mSizePos = 3;
 
   Eigen::VectorXd mStartConf;
   Eigen::VectorXd mGoalPos;
   Eigen::VectorXd mPredefStartConf;
-  Eigen::VectorXd mPredefGoalPos;
 
   int mRobotIndex;
   int mGroundIndex;

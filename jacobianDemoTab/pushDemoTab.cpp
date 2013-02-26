@@ -78,7 +78,6 @@ enum DynamicSimulationTabEvents {
   id_button_SetStart,
   id_button_SetGoal,
   id_button_SetPredefStart,
-  id_button_SetPredefGoal,
   id_button_ShowStart,
   id_button_ShowGoal,
 };
@@ -94,7 +93,7 @@ END_EVENT_TABLE()
 IMPLEMENT_DYNAMIC_CLASS(pushDemoTab, GRIPTab)
 
 // Define right arm nodes
-string const pushDemoTab::mRA_Nodes[mRA_NumNodes] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "rightUJoint", "rightPalmDummy"}; 
+string const pushDemoTab::mRA_Nodes[mRA_NumNodes] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "Body_RWP"}; 
 
 /**
  * @function pushDemoTab
@@ -119,7 +118,6 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
   ss1BoxS->Add(new wxButton(this, id_button_SetStart, wxT("Set Start Conf")), 0, wxALL, 1); 
   ss1BoxS->Add(new wxButton(this, id_button_SetGoal, wxT("Set Goal Object")), 0, wxALL, 1); 
   ss1BoxS->Add(new wxButton(this, id_button_SetPredefStart, wxT("Set Predef Start")), 0, wxALL, 1); 
-  ss1BoxS->Add(new wxButton(this, id_button_SetPredefGoal, wxT("Set Predef Goal")), 0, wxALL, 1); 
 
   // Check buttons (visualize the start and goal states)
   ss2BoxS->Add(new wxButton(this, id_button_ShowStart, wxT("Show Start")), 0, wxALL, 1); 
@@ -141,11 +139,9 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
   mRobotIndex = 0; // We only simulate one robot in this demo so we know its index is 0
 
   mPredefStartConf.resize( mRA_NumNodes );
-  mPredefGoalPos.resize( mSizePos );
   
   // Start and Conf with furniture_2
-  mPredefStartConf <<  -1.20687,  -1.11899,  0,  0,  0,  0,  0 ;
-  mPredefGoalPos << 0.5, 0.6, 1.0;
+  mPredefStartConf <<  -1.20687,  -1.11899,  0,  0,  0,  0 ;
   mGoalObject = "smallRedBall";
 
 }
@@ -194,25 +190,31 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
       }
        
       // Store the selected treeViewer element
+      mGoalObjectIndex = -1;
       for( int i = 0; i < mWorld->getNumObjects(); ++i ) {
 	if( mWorld->getObject(i)->getName() == mGoalObject ) {
 	  mGoalObjectIndex = i; break;
 	}
       }
        
-      mGoalPos.resize( mSizePos );
-      mWorld->getObject( mGoalObjectIndex )->getPositionXYZ( mGoalPos(0), mGoalPos(1), mGoalPos(2) );
-
-      std::cout<<"* Goal object: "<<mGoalObject<<" with index: "<<mGoalObjectIndex<<std::endl;
-      std::cout<<"* Goal Pos: "<< mGoalPos(0)<<" , "<< mGoalPos(1) << " , "<< mGoalPos(2)<<std::endl;
+      if( mGoalObjectIndex == -1 ) {
+	std::cout<< "* Select an object from the Tree View! No goal position set!" <<std::endl;
+      }
+      else {
+	mGoalPos.resize( mSizePos );
+	mWorld->getObject( mGoalObjectIndex )->getPositionXYZ( mGoalPos(0), mGoalPos(1), mGoalPos(2) );
+	
+	std::cout<<"* Goal object: "<<mGoalObject<<" with index: "<<mGoalObjectIndex<<std::endl;
+	std::cout<<"* Goal Pos: "<< mGoalPos(0)<<" , "<< mGoalPos(1) << " , "<< mGoalPos(2)<<std::endl;
+      }
     }      
     else {  
       std::cout<<"--(!) No world loaded, I cannot set a goal position (!)--\n"<<std::endl;
     }
-
+    
   }
     break;
-
+    
     /** DoPlanning*/
   case id_button_DoPlanning: {
     initSettings();
@@ -226,14 +228,6 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
     
   } break;
 
-    /** Set goal configuration hard-coded (right arm) */
-  case id_button_SetPredefGoal : {
-    mGoalPos.resize( mSizePos );
-    mGoalPos = mPredefGoalPos;
-    mWorld->getObject( mGoalObjectIndex )->setPositionXYZ( mGoalPos(0), mGoalPos(1), mGoalPos(2) );
-    mWorld->getObject( mGoalObjectIndex )->update();
-    viewer->DrawGLScene();
-  } break;
 
     /** Show set start configuration */
   case id_button_ShowStart : {
@@ -289,7 +283,7 @@ void pushDemoTab::initSettings() {
   printf("Trajectory nodes are: ");
   for(int i = 0; i < mRA_NumNodes; i++) {
     trajectoryDofs[i] = mWorld->getRobot(mRobotIndex)->getNode(mRA_Nodes[i].c_str())->getDof(0)->getSkelIndex();
-    printf(" %f ", trajectoryDofs[i]);
+    printf(" %d ", trajectoryDofs[i]);
   }
   printf("\n");
   
@@ -320,8 +314,8 @@ void pushDemoTab::initSettings() {
 
   // Deactivate collision checking between the feet and the ground during planning
   dynamics::SkeletonDynamics* ground = mWorld->getSkeleton("ground");
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), ground->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("rightFoot"), ground->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_LAR"), ground->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_RAR"), ground->getNode(1));
   
   // Define PD controller gains
   Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
@@ -362,8 +356,8 @@ void pushDemoTab::initSettings() {
   }
   
   // Reactivate collision of feet with floor
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("leftFoot"), ground->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("rightFoot"), ground->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_LAR"), ground->getNode(1));
+  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_RAR"), ground->getNode(1));
   printf("Controller time: %f \n", mWorld->mTime);
 }
 
@@ -375,16 +369,20 @@ std::list<Eigen::VectorXd> pushDemoTab::getPath() {
   printf("Running JT Follower \n");
   std::list<Eigen::VectorXd> path;
 
-  std::vector<int> trajectoryDofs( mRA_NumNodes);
-  printf("Trajectory nodes are: ");
+  std::vector<int> trajectoryDofs;
+  trajectoryDofs.resize( mRA_NumNodes );
+
+  printf("Trajectory nodes are: \n");
   for(int i = 0; i < mRA_NumNodes; i++) {
     trajectoryDofs[i] = mWorld->getRobot(mRobotIndex)->getNode(mRA_Nodes[i].c_str())->getDof(0)->getSkelIndex();
-    printf(" %f ", trajectoryDofs[i]);
+    printf(" %d ", trajectoryDofs[i]);
   }
+  printf("\n");
+
 
   JTFollower *jt = new JTFollower(*mWorld);
 
-  mEEName = "rightPalmDummy";
+  mEEName = "Body_RWP";
   for( int i = 0; i < mWorld->getRobot( mRobotIndex )->getNumNodes(); ++i ) {\
     if( mWorld->getRobot( mRobotIndex )->getNode(i)->getName() == mEEName ) {
       mEEId = i; break;

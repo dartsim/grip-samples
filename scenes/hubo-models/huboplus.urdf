@@ -12,7 +12,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_Torso_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_Torso_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -20,7 +20,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_Torso_col.dae"/>
+        <mesh filename="huboplus-dae/Body_Torso_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -34,7 +34,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_HNP_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_HNP_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -42,7 +42,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_HNP_col.dae"/>
+        <mesh filename="huboplus-dae/Body_HNP_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -54,7 +54,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_LSP_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_LSP_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -62,7 +62,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_LSP_col.dae"/>
+        <mesh filename="huboplus-dae/Body_LSP_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -74,7 +74,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_LSR_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_LSR_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -82,7 +82,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_LSR_col.dae"/>
+        <mesh filename="huboplus-dae/Body_LSR_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -94,7 +94,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_LSY_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_LSY_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -102,7 +102,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_LSY_col.dae"/>
+        <mesh filename="huboplus-dae/Body_LSY_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -114,7 +114,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_LEP_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_LEP_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -122,7 +122,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_LEP_col.dae"/>
+        <mesh filename="huboplus-dae/Body_LEP_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -134,7 +134,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_LWY_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_LWY_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -142,7 +142,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_LWY_col.dae"/>
+        <mesh filename="huboplus-dae/Body_LWY_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -154,7 +154,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_LWP_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_LWP_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -162,7 +162,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_LWP_col.dae"/>
+        <mesh filename="huboplus-dae/Body_LWP_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -174,7 +174,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftThumbProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftThumbProximal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -182,7 +182,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftThumbProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftThumbProximal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -194,7 +194,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftThumbMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/leftThumbMedial_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -202,7 +202,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftThumbMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/leftThumbMedial_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -214,7 +214,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftThumbDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftThumbDistal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -222,7 +222,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftThumbDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftThumbDistal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -234,7 +234,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftPinkyProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftPinkyProximal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -242,7 +242,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftPinkyProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftPinkyProximal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -254,7 +254,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftPinkyMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/leftPinkyMedial_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -262,7 +262,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftPinkyMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/leftPinkyMedial_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -274,7 +274,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftPinkyDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftPinkyDistal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -282,7 +282,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftPinkyDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftPinkyDistal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -294,7 +294,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftRingProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftRingProximal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -302,7 +302,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftRingProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftRingProximal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -314,7 +314,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftRingMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/leftRingMedial_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -322,7 +322,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftRingMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/leftRingMedial_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -334,7 +334,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftRingDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftRingDistal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -342,7 +342,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftRingDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftRingDistal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -354,7 +354,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftMiddleProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftMiddleProximal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -362,7 +362,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftMiddleProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftMiddleProximal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -374,7 +374,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftMiddleMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/leftMiddleMedial_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -382,7 +382,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftMiddleMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/leftMiddleMedial_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -394,7 +394,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftMiddleDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftMiddleDistal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -402,7 +402,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftMiddleDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftMiddleDistal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -414,7 +414,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftIndexProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftIndexProximal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -422,7 +422,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftIndexProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftIndexProximal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -434,7 +434,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftIndexMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/leftIndexMedial_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -442,7 +442,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftIndexMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/leftIndexMedial_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -454,7 +454,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/leftIndexDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftIndexDistal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -462,7 +462,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/leftIndexDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/leftIndexDistal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -474,7 +474,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_RSP_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_RSP_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -482,7 +482,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_RSP_col.dae"/>
+        <mesh filename="huboplus-dae/Body_RSP_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -494,7 +494,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_RSR_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_RSR_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -502,7 +502,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_RSR_col.dae"/>
+        <mesh filename="huboplus-dae/Body_RSR_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -514,7 +514,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_RSY_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_RSY_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -522,7 +522,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_RSY_col.dae"/>
+        <mesh filename="huboplus-dae/Body_RSY_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -534,7 +534,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_REP_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_REP_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -542,7 +542,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_REP_col.dae"/>
+        <mesh filename="huboplus-dae/Body_REP_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -554,7 +554,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_RWY_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_RWY_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -562,7 +562,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_RWY_col.dae"/>
+        <mesh filename="huboplus-dae/Body_RWY_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -574,7 +574,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_RWP_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_RWP_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -582,7 +582,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_RWP_col.dae"/>
+        <mesh filename="huboplus-dae/Body_RWP_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -594,7 +594,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightThumbProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightThumbProximal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -602,7 +602,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightThumbProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightThumbProximal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -614,7 +614,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightThumbMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/rightThumbMedial_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -622,7 +622,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightThumbMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/rightThumbMedial_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -634,7 +634,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightThumbDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightThumbDistal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -642,7 +642,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightThumbDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightThumbDistal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -654,7 +654,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightPinkyProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightPinkyProximal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -662,7 +662,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightPinkyProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightPinkyProximal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -674,7 +674,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightPinkyMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/rightPinkyMedial_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -682,7 +682,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightPinkyMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/rightPinkyMedial_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -694,7 +694,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightPinkyDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightPinkyDistal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -702,7 +702,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightPinkyDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightPinkyDistal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -714,7 +714,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightRingProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightRingProximal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -722,7 +722,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightRingProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightRingProximal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -734,7 +734,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightRingMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/rightRingMedial_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -742,7 +742,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightRingMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/rightRingMedial_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -754,7 +754,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightRingDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightRingDistal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -762,7 +762,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightRingDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightRingDistal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -774,7 +774,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightMiddleProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightMiddleProximal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -782,7 +782,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightMiddleProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightMiddleProximal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -794,7 +794,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightMiddleMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/rightMiddleMedial_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -802,7 +802,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightMiddleMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/rightMiddleMedial_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -814,7 +814,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightMiddleDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightMiddleDistal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -822,7 +822,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightMiddleDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightMiddleDistal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -834,7 +834,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightIndexProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightIndexProximal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -842,7 +842,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightIndexProximal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightIndexProximal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -854,7 +854,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightIndexMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/rightIndexMedial_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -862,7 +862,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightIndexMedial_vis.dae"/>
+        <mesh filename="huboplus-dae/rightIndexMedial_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -874,7 +874,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/rightIndexDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightIndexDistal_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -882,7 +882,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/rightIndexDistal_vis.dae"/>
+        <mesh filename="huboplus-dae/rightIndexDistal_vis.dae"/>
       </geometry>
     </collision>
   </link>
@@ -894,7 +894,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_Hip_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_Hip_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -902,7 +902,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_Hip_col.dae"/>
+        <mesh filename="huboplus-dae/Body_Hip_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -914,7 +914,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_LHY_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_LHY_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -922,7 +922,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_LHY_col.dae"/>
+        <mesh filename="huboplus-dae/Body_LHY_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -934,7 +934,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_LHR_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_LHR_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -942,7 +942,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_LHR_col.dae"/>
+        <mesh filename="huboplus-dae/Body_LHR_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -954,7 +954,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_LHP_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_LHP_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -962,7 +962,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_LHP_col.dae"/>
+        <mesh filename="huboplus-dae/Body_LHP_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -974,7 +974,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_LKP_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_LKP_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -982,7 +982,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_LKP_col.dae"/>
+        <mesh filename="huboplus-dae/Body_LKP_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -994,7 +994,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_LAP_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_LAP_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -1002,7 +1002,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_LAP_col.dae"/>
+        <mesh filename="huboplus-dae/Body_LAP_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -1014,7 +1014,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_LAR_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_LAR_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -1022,7 +1022,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_LAR_col.dae"/>
+        <mesh filename="huboplus-dae/Body_LAR_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -1034,7 +1034,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_RHY_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_RHY_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -1042,7 +1042,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_RHY_col.dae"/>
+        <mesh filename="huboplus-dae/Body_RHY_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -1054,7 +1054,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_RHR_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_RHR_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -1062,7 +1062,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_RHR_col.dae"/>
+        <mesh filename="huboplus-dae/Body_RHR_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -1074,7 +1074,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_RHP_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_RHP_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -1082,7 +1082,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_RHP_col.dae"/>
+        <mesh filename="huboplus-dae/Body_RHP_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -1094,7 +1094,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_RKP_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_RKP_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -1102,7 +1102,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_RKP_col.dae"/>
+        <mesh filename="huboplus-dae/Body_RKP_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -1114,7 +1114,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_RAP_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_RAP_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -1122,7 +1122,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_RAP_col.dae"/>
+        <mesh filename="huboplus-dae/Body_RAP_col.dae"/>
       </geometry>
     </collision>
   </link>
@@ -1134,7 +1134,7 @@
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="dae/Body_RAR_vis.dae"/>
+        <mesh filename="huboplus-dae/Body_RAR_vis.dae"/>
       </geometry>
       <material name="random">
         <color rgba="0.800000 0.800000 0.500000 1"/>
@@ -1142,7 +1142,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="dae/Body_RAR_col.dae"/>
+        <mesh filename="huboplus-dae/Body_RAR_col.dae"/>
       </geometry>
     </collision>
   </link>
