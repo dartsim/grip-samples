@@ -49,7 +49,6 @@
 #include <kinematics/ShapeBox.h>
 #include <kinematics/Dof.h>
 #include <kinematics/Joint.h>
-#include <robotics/Object.h>
 #include <robotics/Robot.h>
 #include <planning/PathPlanner.h>
 #include <planning/PathShortener.h>
@@ -192,8 +191,8 @@ void planningTab::onButtonSetPredefGoal(wxCommandEvent & _evt) {
 /// Move objects to obstruct the direct path between the predefined start and goal configurations
 void planningTab::onButtonRelocateObjects(wxCommandEvent & _evt) {
 
-  robotics::Object* orangeCube = (robotics::Object*)mWorld->getSkeleton("orangeCube");
-  robotics::Object* yellowCube = (robotics::Object*)mWorld->getSkeleton("yellowCube");
+  robotics::Robot* orangeCube = (robotics::Robot*)mWorld->getSkeleton("orangeCube");
+  robotics::Robot* yellowCube = (robotics::Robot*)mWorld->getSkeleton("yellowCube");
   
   if(!orangeCube || !yellowCube) {
     cout << "Did not find orange or yellow object. Exiting and no moving anything" << endl;

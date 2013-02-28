@@ -61,7 +61,6 @@ using namespace std;
 #include <kinematics/ShapeBox.h>
 #include <kinematics/Dof.h>
 #include <kinematics/Joint.h>
-#include <robotics/Object.h>
 #include <robotics/Robot.h>
 
 // Planning and controller
@@ -460,7 +459,7 @@ void pushDemoTab::GRIPStateChange() {
   case Return_Type_Object:
     statusBuf = " Selected Object: ";
     buf = "You clicked on object: ";
-    mGoalObject = ( (robotics::Object*)(selectedTreeNode->data) )->getName();
+    mGoalObject = ( (robotics::Robot*)(selectedTreeNode->data) )->getName();
     
     break;
   case Return_Type_Robot:
