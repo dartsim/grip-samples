@@ -200,13 +200,10 @@ void planningTab::onButtonRelocateObjects(wxCommandEvent & _evt) {
   }
   
   Eigen::Matrix<double, 6, 1> pose; 
-  pose << 0, 0, 0, 0, 0, 0;
-
-  pose(0) = 0.30; pose(1) = -0.30; pose(2) = 0.83;
-  orangeCube->setRootTransform( pose );
-
-  pose(0) = 0.30; pose(1) = -0.30; pose(2) = 0.935;
-  yellowCube->setRootTransform( pose );
+  pose << 0.30, -0.30, 0.83, 0.0, 0.0, 0.0;
+  orangeCube->setRootTransform(pose);
+  pose << 0.30, -0.30, 0.935, 0.0, 0.0, 0.0;
+  yellowCube->setRootTransform(pose);
 
   viewer->DrawGLScene();
 }
