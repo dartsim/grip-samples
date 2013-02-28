@@ -202,8 +202,10 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
       }
       else {
 	mGoalPos.resize( mSizePos );
-	mWorld->getObject( mGoalObjectIndex )->getPositionXYZ( mGoalPos(0), mGoalPos(1), mGoalPos(2) );
-	
+	Eigen::VectorXd pose;
+	pose = mWorld->getObject( mGoalObjectIndex )->getRootTransform();
+	mGoalPos(0) = pose(0); mGoalPos(1) = pose(1); mGoalPos(2) = pose(2);
+
 	std::cout<<"* Goal object: "<<mGoalObject<<" with index: "<<mGoalObjectIndex<<std::endl;
 	std::cout<<"* Goal Pos: "<< mGoalPos(0)<<" , "<< mGoalPos(1) << " , "<< mGoalPos(2)<<std::endl;
       }

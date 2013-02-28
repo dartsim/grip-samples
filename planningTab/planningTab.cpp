@@ -200,10 +200,14 @@ void planningTab::onButtonRelocateObjects(wxCommandEvent & _evt) {
     return;
   }
   
-  orangeCube->setPositionXYZ(0.30, -0.30, 0.83);
-  yellowCube->setPositionXYZ(0.30, -0.30, 0.935);
-  orangeCube->update();
-  yellowCube->update();
+  Eigen::VectorXd pose(6); 
+  pose << 0, 0, 0, 0, 0, 0;
+
+  pose(0) = 0.30; pose(1) = -0.30; pose(2) = 0.83;
+  orangeCube->setRootTransform( pose );
+
+  pose(0) = 0.30; pose(1) = -0.30; pose(2) = 0.935;
+  yellowCube->setRootTransform( pose );
 
   viewer->DrawGLScene();
 }
