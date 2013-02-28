@@ -200,7 +200,7 @@ void planningTab::onButtonRelocateObjects(wxCommandEvent & _evt) {
     return;
   }
   
-  Eigen::VectorXd pose(6); 
+  Eigen::Matrix<double, 6, 1> pose; 
   pose << 0, 0, 0, 0, 0, 0;
 
   pose(0) = 0.30; pose(1) = -0.30; pose(2) = 0.83;

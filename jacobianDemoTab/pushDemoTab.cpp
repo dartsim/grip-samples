@@ -202,7 +202,7 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
       }
       else {
 	mGoalPos.resize( mSizePos );
-	Eigen::VectorXd pose;
+	Eigen::Matrix<double, 6, 1> pose;
 	pose = mWorld->getObject( mGoalObjectIndex )->getRootTransform();
 	mGoalPos(0) = pose(0); mGoalPos(1) = pose(1); mGoalPos(2) = pose(2);
 
