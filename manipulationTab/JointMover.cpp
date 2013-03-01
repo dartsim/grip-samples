@@ -44,7 +44,6 @@
 #include <iostream>
 #include <stdlib.h>
 #include <robotics/Robot.h>
-#include <robotics/Object.h>
 #include <dynamics/BodyNodeDynamics.h>
 #include <kinematics/TrfmTranslate.h>
 #include <kinematics/Transformation.h>

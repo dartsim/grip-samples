@@ -51,8 +51,6 @@
 #include <kinematics/ShapeBox.h>
 #include <kinematics/Dof.h>
 #include <kinematics/Joint.h>
-#include <robotics/Object.h>
-#include <robotics/Robot.h>
 #include <planning/PathPlanner.h>
 #include <planning/PathShortener.h>
 #include <planning/Trajectory.h>
@@ -297,34 +295,27 @@ void manipulationTab::GRIPStateChange() {
     if (selectedTreeNode == NULL) {
         return;
     }
-    string statusBuf;
-    string buf, buf2;
     switch (selectedTreeNode->dType) {
-        case Return_Type_Object:{
-            statusBuf = " Selected Object: ";
-            buf = "You clicked on object: ";
-            robotics::Object* pObject = (robotics::Object*)(selectedTreeNode->data);
-            selectedNode = pObject->mRoot;
-            break;
-        }
-        case Return_Type_Robot:{
-            statusBuf = " Selected Robot: ";
-            buf = "You clicked on robot: ";
-            robotics::Robot* pRobot = (robotics::Robot*)(selectedTreeNode->data);
-            selectedNode = pRobot->mRoot;
-            break;
-        }
-        case Return_Type_Node:{
-            statusBuf = " Selected Link:  of Robot: ";
-            buf = " Link:  of Robot: ";
-            dynamics::BodyNodeDynamics* pBodyNode = (dynamics::BodyNodeDynamics*)(selectedTreeNode->data);
-            selectedNode = pBodyNode;
-            break;
-        }
-        default:
-            fprintf(stderr, "someone else's problem.");
-            assert(0);
-            exit(1);
+    case Return_Type_Object: {
+        robotics::Robot* pObject = (robotics::Robot*)(selectedTreeNode->data);
+        selectedNode = pObject->mRoot;
+        break;
+    }
+    case Return_Type_Robot: {
+        robotics::Robot* pRobot = (robotics::Robot*)(selectedTreeNode->data);
+        selectedNode = pRobot->mRoot;
+        break;
+    }
+    case Return_Type_Node: {
+        dynamics::BodyNodeDynamics* pBodyNode = (dynamics::BodyNodeDynamics*)(selectedTreeNode->data);
+        selectedNode = pBodyNode;
+        break;
+    }
+    default: {
+        fprintf(stderr, "someone else's problem.");
+        assert(0);
+        exit(1);
+    }
     }
 }
 
@@ -454,5 +445,5 @@ void manipulationTab::drawAxesWithOrientation(Eigen::Matrix4d transformation, do
 }
 
 // Local Variables:
-// c-basic-offset: 2
+// c-basic-offset: 4
 // End:

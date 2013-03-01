@@ -43,7 +43,6 @@
 #include "Grasper.h"
 #include "robotics/World.h"
 #include "robotics/Robot.h"
-#include <robotics/Object.h>
 #include "kinematics/Dof.h"
 #include <GUI/Viewer.h>
 #include <Eigen/LU>
