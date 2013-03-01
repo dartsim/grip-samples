@@ -1,0 +1,43 @@
+<object
+  name="gcp">
+  <link
+    name="gcp">
+    <inertial>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.00081245" />
+      <inertia
+        ixx="1.08892445114445E-08"
+        ixy="0"
+        ixz="0"
+        iyy="6.6675190085202E-25"
+        iyz="-1.08892445114445E-08"
+        izz="6.6675190085202E-25" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="1.5707963267949 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="/objects/gcp.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="1.5707963267949 0 0" />
+      <geometry>
+        <mesh
+          filename="/objects/gcp.STL" />
+      </geometry>
+    </collision>
+  </link>
+</object>
