@@ -125,10 +125,13 @@ namespace planning {
  
     double Grasper::calculateMinDistance(Vector3d &closest){
         //1. get collision meshes and vertices
-        kinematics::Shape* shape = objectNode->getShape();
-        const aiScene* sc = shape->getShapeType() == kinematics::Shape::P_MESH ? ((kinematics::ShapeMesh*)shape)->getMesh() : 0;
-        
-        if (shape->getCollisionMesh() != NULL) { sc = shape->getCollisionMesh(); }
+    	kinematics::ShapeMesh* shapeMesh = dynamic_cast<kinematics::ShapeMesh *>(objectNode->getColShape());
+
+    	if(!shapeMesh)
+    		return -1;
+
+        const aiScene* sc = shapeMesh->getMesh();
+
         double min_distance = -1;
          
         if(sc != NULL){
