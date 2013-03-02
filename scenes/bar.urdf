@@ -1,16 +1,13 @@
 <object
-  name="dumbbell">
+  name="bar">
   <link
-    name="dumbbell">
+    name="bar">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <mass value="0.06"/>
       <inertia ixx="0.0067e-4" ixy="0.0" ixz="0.0" iyy="0.0067e-4" iyz="0.0" izz="0.0067e-4" />
     </inertial>
     <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="/objects/bar.STL" />
@@ -22,9 +19,6 @@
       </material>
     </visual>
     <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="1.5707963267949 0 0" />
       <geometry>
         <mesh
           filename="/objects/bar.STL" />
