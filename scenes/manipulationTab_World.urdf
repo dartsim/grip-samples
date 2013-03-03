@@ -5,7 +5,7 @@
   <include filename="bar.urdf" model_name="bar"/>
   <include filename="dumbbell.urdf" model_name="dumbbell"/>
   <entity model="jaemi" name="GolemHubo">
-    <origin xyz="0 0 0.955" rpy="0 0 0"/>
+    <origin xyz="0 0 0.988" rpy="0 0 0"/>
   </entity>
 
   <entity model="glassDiningTable2" name="glassDiningTable2">

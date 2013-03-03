@@ -1,6 +1,0 @@
-<world name="hubosimple-empty-world">
-    <include filename="hubosimple.urdf" model_name="hubosimple"/>
-    <entity model="hubosimple" name="hubosimple">
-        <origin xyz="0 0 1.0" rpy="0 0 0" />
-    </entity>
-</world>
