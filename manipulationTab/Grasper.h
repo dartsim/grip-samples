@@ -74,7 +74,7 @@ namespace planning {
         
         void plan(std::list<Eigen::VectorXd> &path, std::vector<int> &dofs);
         double calculateMinDistance(Eigen::Vector3d &closest);
-        bool closeHand(double stepSize, kinematics::BodyNode* target);
+        vector<collision_checking::ContactPoint> closeHand(double stepSize, kinematics::BodyNode* target);
         void openHand();
         
     protected:
@@ -89,6 +89,9 @@ namespace planning {
         planning::RRT* rrt;
         JointMover* jm;
         std::string EEName;
+    private:
+        bool moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, 
+                vector<collision_checking::ContactPoint> contacts);
     };
 }
 
