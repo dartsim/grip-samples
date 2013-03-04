@@ -31,3 +31,6 @@ gmon.out
 # eclipse
 .project
 .cproject
+
+# netbeans
+nbproject/
