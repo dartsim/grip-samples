@@ -66,7 +66,7 @@ JointMover::JointMover( robotics::World &_world, int _robotId, const std::vector
 
   mLinks = _links;
   mMaxIter = 200;
-  mWorkspaceThresh = 0.006;// An error of half the resolution // dunno why 0.02
+  mWorkspaceThresh = 0.006;
   mEENode = (dynamics::BodyNodeDynamics*)mWorld.getRobot(mRobotId)->getNode(_EEName.c_str());
 }
 
@@ -100,12 +100,14 @@ bool JointMover::GoToXYZ( VectorXd _qStart, VectorXd _targetXYZ, VectorXd &_qRes
   while( dXYZ.norm() > mWorkspaceThresh && iter < mMaxIter ) {
     _qResult = OneStepTowardsXYZ(_qResult, _targetXYZ);
     path.push_back(_qResult);
-   
+    
+    
     dXYZ = (_targetXYZ - GetXYZ(_qResult) );
     PRINT(dXYZ.norm());
     iter++;
   }
-
+  
+  mWorld.getRobot(mRobotId)->update();
   //ECHO("END GoToXYZ");
   return iter < mMaxIter;
 }

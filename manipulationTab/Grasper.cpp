@@ -93,17 +93,19 @@ namespace planning {
         //try to close hand;  //QUICK FIX: expand each vector in path to be 21 DOFs
         totalDofs = dofs;
         closeHand(0.1, objectNode);
-        PRINT(hand_dofs.size());
+        
         //merge DOFS
         totalDofs.insert(totalDofs.end(), hand_dofs.begin(), hand_dofs.end());
         //increase size of every vector in path
         for(list<VectorXd>::iterator it = path.begin(); it != path.end(); it++){
             VectorXd & v (*it);
+            //cout << "BEFORE: " << v << endl;
             v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) = VectorXd::Zero(hand_dofs.size(), 1);
+            //PRINT(v);
         }
         path.push_back(world->getRobot(robot)->getConfig(totalDofs));
         ECHO("Added closed hand config to path!");
-        //PRINT(world->getRobot(robot)->getConfig(totalDofs));
+        
         //move grasped object around
         list<VectorXd> targetPoints; 
         VectorXd v(3); v << 0.33,-0.10, 1.17; targetPoints.push_back(v);
@@ -125,6 +127,9 @@ namespace planning {
         //open hand at the end and store such configuration
         openHand();
         path.push_back(world->getRobot(robot)->getConfig(totalDofs));
+        
+        //reset robot to start configuration
+        world->getRobot(robot)->setConfig(dofs, startConfig);
     }
     
     /// Find closest point in target object to be grasped
@@ -207,8 +212,8 @@ namespace planning {
                 if (!colliding_link[link]) {
                     grasped = false;
                     kinematics::Joint *j(*it);
-                    if (moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts))
-                        colliding_link[link] = true;
+                    // check for collision and set as colliding if so
+                    colliding_link[link] = moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts);
                 }
                 link++;
             }

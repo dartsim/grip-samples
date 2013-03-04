@@ -268,9 +268,6 @@ void manipulationTab::grasp() {
     PRINT(path.size());
     
     // Create trajectory; no need to shorten path here
-    planning::PathShortener pathShortener(mWorld, mRobotIndex, mTotalDofs);
-    pathShortener.shortenPath(path);
-    
     const Eigen::VectorXd maxVelocity = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
     const Eigen::VectorXd maxAcceleration = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
     planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
