@@ -72,7 +72,7 @@ namespace planning {
         
         void init(std::vector<int> &dofs, Eigen::VectorXd &start, kinematics::BodyNode* objectNode);
         void plan(std::list<Eigen::VectorXd> &path, std::vector<int> &dofs);
-        double calculateMinDistance(Eigen::Vector3d &closest);
+        double findClosestGraspingPoint(Eigen::Vector3d &closest);
         vector<collision_checking::ContactPoint> closeHand(double stepSize, kinematics::BodyNode* target);
         void openHand();
         

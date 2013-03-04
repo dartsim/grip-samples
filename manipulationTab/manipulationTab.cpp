@@ -157,7 +157,7 @@ void manipulationTab::GRIPEventSceneLoaded() {
 void manipulationTab::onCheckShowCollMesh(wxCommandEvent &evt) {
 }
 
-///Set start configuration to the configuration the arm is currently in
+/// Set start configuration to the configuration the arm is currently in
 void manipulationTab::onButtonSetStart(wxCommandEvent& evt){
     if(!mWorld || mWorld->getNumRobots() < 1){
         cout << "No world loaded or world does not contain a robot" << endl;
@@ -167,7 +167,7 @@ void manipulationTab::onButtonSetStart(wxCommandEvent& evt){
     cout << "Start Configuration: " << mStartConf.transpose() << endl;
 }
 
-///Reset start configuration to predefined one
+/// Reset start configuration to predefined one
 void manipulationTab::onButtonSetPredefStart(wxCommandEvent& evt){
     if(!mWorld || mWorld->getNumRobots() < 1){
         cout << "No world loaded or world does not contain a robot" << endl;
@@ -176,7 +176,7 @@ void manipulationTab::onButtonSetPredefStart(wxCommandEvent& evt){
     mStartConf = mPredefStartConf;
 }
 
-///Show the currently set start configuration
+/// Show the currently set start configuration
 void manipulationTab::onButtonShowStart(wxCommandEvent& evt) {
     if (mStartConf.size()) {
         cout << "Showing start conf for right arm: " << mStartConf.transpose() << endl;
@@ -187,7 +187,7 @@ void manipulationTab::onButtonShowStart(wxCommandEvent& evt) {
     }
 }
 
-///Test currently implemented grasping approach
+/// Test currently implemented grasping approach
 void manipulationTab::onButtonDoGrasping(wxCommandEvent& evt){
     if(!mWorld || mWorld->getNumRobots() < 1){
         cout << "No world loaded or world does not contain a robot" << endl;
@@ -196,7 +196,7 @@ void manipulationTab::onButtonDoGrasping(wxCommandEvent& evt){
     grasp();
 }
 
-///Close robot's end effector
+/// Close robot's end effector
 void manipulationTab::onButtonOpenHand(wxCommandEvent& evt) {
     if (grasper != NULL && palmEName.size()) {
         grasper->openHand();
@@ -206,7 +206,7 @@ void manipulationTab::onButtonOpenHand(wxCommandEvent& evt) {
     }
 }
 
-///Open robot's end effector
+/// Open robot's end effector
 void manipulationTab::onButtonCloseHand(wxCommandEvent& evt) {
     if (grasper != NULL && palmEName.size()) {
         grasper->closeHand(0.1, selectedNode);
