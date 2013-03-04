@@ -201,7 +201,7 @@ namespace planning {
         bool grasped = false;
         int jointID = 0;
         int iteration = 0;
-        while (!grasped && iteration < 10) {
+        while (!grasped && iteration < 15) { // the iteration check is just a quick fix for now!
             iteration++;
             grasped = true;
             //iterate through each end-effector joint i.e. 15 joints = 5 x 3 joint per finger
@@ -211,9 +211,10 @@ namespace planning {
                 if (!colliding_link[link]) {
                     grasped = false;
                     kinematics::Joint *j(*it);
-                    // check for collision and set as colliding if so
+                    // check for collision and set as colliding if so; set corresponding 
+                    // link collision status to true or false; disregard for thumb
                     //QUICK FIX for thumb bug: don't check for collision initially
-                    if(link > 11 && iteration < 2){
+                    if(link > 11){
                         colliding_link[link] = moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts, false);
                     }
                     else{
@@ -224,7 +225,7 @@ namespace planning {
             }
             //perform additional check to allow for better grasping
             if (grasped && iteration > 2) {
-                //iteration = 0;
+                //iteration = 0; //leave commented for now
                 grasped = false;
 
                 for (int i = 0; i < joints.size(); i++) {
@@ -268,7 +269,7 @@ namespace planning {
             }
             else{
                 joint->getDof(0)->setValue(oldJointValue);
-                 world->getRobot(robot)->update();
+                world->getRobot(robot)->update();
             }
         }
         return ret;
