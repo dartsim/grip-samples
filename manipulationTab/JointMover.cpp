@@ -101,14 +101,12 @@ bool JointMover::GoToXYZ( VectorXd _qStart, VectorXd _targetXYZ, VectorXd &_qRes
     _qResult = OneStepTowardsXYZ(_qResult, _targetXYZ);
     path.push_back(_qResult);
     
-    
     dXYZ = (_targetXYZ - GetXYZ(_qResult) );
     PRINT(dXYZ.norm());
     iter++;
   }
   
   mWorld.getRobot(mRobotId)->update();
-  //ECHO("END GoToXYZ");
   return iter < mMaxIter;
 }
 
