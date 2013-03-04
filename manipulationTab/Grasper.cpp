@@ -70,6 +70,7 @@ namespace planning {
         delete jm;
     }
     
+    /// Finish initialization of grasper by providing end effector's links ids, start configuration and target object
     void Grasper::init(std::vector<int>& d, Eigen::VectorXd& start, kinematics::BodyNode* node){
         dofs = d; 
         startConfig = start;
@@ -79,6 +80,7 @@ namespace planning {
         jm = new JointMover(*world, robot, dofs, EEName, 0.01);
     }
     
+    /// Attempt a grasp at a target object
     void Grasper::plan(list<VectorXd> &path, vector<int> &totalDofs) {
         //find closest point in target object; grasp target point
         int min = calculateMinDistance(graspPoint); 
@@ -96,7 +98,7 @@ namespace planning {
         //increase size of every vector in path
         for(list<VectorXd>::iterator it = path.begin(); it != path.end(); it++){
             VectorXd & v (*it);
-            v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) << 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+            v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) = VectorXd::Zero(hand_dofs.size(), 1);
         }
         path.push_back(world->getRobot(robot)->getConfig(totalDofs));
         ECHO("Added closed hand config to path!");
@@ -120,15 +122,16 @@ namespace planning {
             }
         }
         //open hand at the end and store such configuration
-        //openHand();
-        //path.push_back(world->getRobot(robot)->getConfig(totalDofs));
+        openHand();
+        path.push_back(world->getRobot(robot)->getConfig(totalDofs));
     }
- 
+    
+    /// Find closest point in target object to be grasped
     double Grasper::calculateMinDistance(Vector3d &closest){
         //1. get collision meshes and vertices
     	kinematics::ShapeMesh* shapeMesh = dynamic_cast<kinematics::ShapeMesh *>(objectNode->getColShape());
         
-    	if(!shapeMesh){
+    	if(shapeMesh == NULL){
     		return -1;
         }
         const aiScene* sc = shapeMesh->getMesh();
@@ -161,7 +164,7 @@ namespace planning {
         return min_distance;
     }
     
-    //modifications of idea provided by Asfour et. al. GraspRRT on Robotics and Automation Magazine, 2012
+    /// Modifications of idea provided by Asfour et. al. GraspRRT on Robotics and Automation Magazine, 2012
     vector<ContactPoint> Grasper::closeHand(double step, kinematics::BodyNode* target) {
         vector<ContactPoint> resulting_contacts(100);
         if (target == NULL) {
@@ -169,7 +172,6 @@ namespace planning {
             return resulting_contacts;
         }
         int fingers = world->getRobot(robot)->getNode(EEName.c_str())->getNumChildJoints();
-        PRINT(fingers);
         list<kinematics::Joint*> joints;
         vector<int> jointDirections;
         //first build list of joints
@@ -222,6 +224,7 @@ namespace planning {
         return resulting_contacts;
     }
     
+    /// Open robot's hand by setting all fingers joints values to 0
     void Grasper::openHand(){
         PRINT(world->getRobot(robot)->getNode(EEName.c_str())->getNumChildJoints());
         int fingers = world->getRobot(robot)->getNode(EEName.c_str())->getNumChildJoints();
@@ -232,10 +235,11 @@ namespace planning {
             fingerJoint->getDof(0)->setValue(0);
             fingerJoint->getChildNode()->getChildJoint(jointID)->getDof(0)->setValue(0);
             fingerJoint->getChildNode()->getChildJoint(jointID)->getChildNode()->getChildJoint(0)->getDof(0)->setValue(0);
-            //world->getRobot(robot)->update();
+            world->getRobot(robot)->update();
         }
     }
     
+    /// Increase a joint value with collision checking
     bool Grasper::moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, vector<ContactPoint> contacts){
         bool ret = true;
         

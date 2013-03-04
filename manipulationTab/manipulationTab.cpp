@@ -268,7 +268,7 @@ void manipulationTab::grasp() {
     PRINT(path.size());
     
     // Create trajectory; no need to shorten path here
-    /*planning::PathShortener pathShortener(mWorld, mRobotIndex, mTotalDofs);
+    planning::PathShortener pathShortener(mWorld, mRobotIndex, mTotalDofs);
     pathShortener.shortenPath(path);
     
     const Eigen::VectorXd maxVelocity = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
@@ -282,7 +282,7 @@ void manipulationTab::grasp() {
     mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_LAR"), ground->getNode(1));
     mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_RAR"), ground->getNode(1));
 
-    printf("Controller time: %f \n", mWorld->mTime);*/
+    printf("Controller time: %f \n", mWorld->mTime);
     
 }
 

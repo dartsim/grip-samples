@@ -71,7 +71,6 @@ namespace planning {
         virtual ~Grasper();
         
         void init(std::vector<int> &dofs, Eigen::VectorXd &start, kinematics::BodyNode* objectNode);
-        
         void plan(std::list<Eigen::VectorXd> &path, std::vector<int> &dofs);
         double calculateMinDistance(Eigen::Vector3d &closest);
         vector<collision_checking::ContactPoint> closeHand(double stepSize, kinematics::BodyNode* target);
@@ -79,16 +78,17 @@ namespace planning {
         
     protected:
         robotics::World* world;
+        planning::RRT* rrt;
+        JointMover* jm;
+        
         int robot;
         std::vector<int> dofs;
         std::vector<int> hand_dofs;
         Eigen::VectorXd startConfig;
         Eigen::VectorXd objectConfig;
         kinematics::BodyNode* objectNode;
-        
-        planning::RRT* rrt;
-        JointMover* jm;
         std::string EEName;
+        
     private:
         bool moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, 
                 vector<collision_checking::ContactPoint> contacts);
