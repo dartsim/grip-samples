@@ -60,6 +60,7 @@ using namespace collision_checking;
 Vector3d graspPoint;
 
 namespace planning {
+    
     Grasper::Grasper(World* w, int r, string mEEName) {
         world = w;
         robot = r;
@@ -83,7 +84,7 @@ namespace planning {
     /// Attempt a grasp at a target object
     void Grasper::plan(list<VectorXd> &path, vector<int> &totalDofs) {
         //find closest point in target object; grasp target point
-        int min = calculateMinDistance(graspPoint); 
+        int min = findClosestGraspingPoint(graspPoint); 
         VectorXd goalPose(6);
         
         //perform translation Jacobian towards grasping point computed
@@ -127,7 +128,7 @@ namespace planning {
     }
     
     /// Find closest point in target object to be grasped
-    double Grasper::calculateMinDistance(Vector3d &closest){
+    double Grasper::findClosestGraspingPoint(Vector3d &closest){
         //1. get collision meshes and vertices
     	kinematics::ShapeMesh* shapeMesh = dynamic_cast<kinematics::ShapeMesh *>(objectNode->getColShape());
         
