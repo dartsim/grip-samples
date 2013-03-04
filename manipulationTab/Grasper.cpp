@@ -135,7 +135,7 @@ namespace planning {
     /// Find closest point in target object to be grasped
     double Grasper::findClosestGraspingPoint(Vector3d &closest){
         //1. get collision meshes and vertices
-    	kinematics::ShapeMesh* shapeMesh = dynamic_cast<kinematics::ShapeMesh *>(objectNode->getColShape());
+    	kinematics::ShapeMesh* shapeMesh = dynamic_cast<kinematics::ShapeMesh *>(objectNode->getCollisionShape());
         
     	if(shapeMesh == NULL){
     		return -1;

@@ -71,7 +71,7 @@ public:
   
   void grasp();
   void drawAxes(Eigen::VectorXd origin, double size);
-  void drawAxesWithOrientation(Eigen::Matrix4d transformation, double s);
+  void drawAxesWithOrientation(const Eigen::Matrix4d& transformation, double s);
   
   planning::Controller* mController;
   planning::Grasper* grasper;
