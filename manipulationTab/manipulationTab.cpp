@@ -56,9 +56,9 @@
 #include <planning/Trajectory.h>
 #include "Controller.h"
 #include "Grasper.h"
-// **********************
 
-/** Events */
+
+/// Define IDs for buttons
 enum DynamicSimulationTabEvents {
     id_button_DoPlanning = 8345,
     id_button_RelocateObjects,
@@ -78,18 +78,20 @@ using namespace std;
 
 // Handler for events
 BEGIN_EVENT_TABLE(manipulationTab, wxPanel)
-EVT_COMMAND(wxID_ANY, wxEVT_COMMAND_BUTTON_CLICKED, manipulationTab::OnButton)
-EVT_CHECKBOX(id_checkbox_showcollmesh, manipulationTab::OnCheckShowCollMesh)
-END_EVENT_TABLE()
+EVT_COMMAND(id_button_SetPredefStart, wxEVT_COMMAND_BUTTON_CLICKED, manipulationTab::onButtonSetPredefStart)
+EVT_COMMAND(id_button_SetStart, wxEVT_COMMAND_BUTTON_CLICKED, manipulationTab::onButtonSetStart)
+EVT_COMMAND(id_button_ShowStart, wxEVT_COMMAND_BUTTON_CLICKED, manipulationTab::onButtonShowStart)
+EVT_COMMAND(id_button_Grasping, wxEVT_COMMAND_BUTTON_CLICKED, manipulationTab::onButtonDoGrasping)
+EVT_COMMAND(id_button_OpenHand, wxEVT_COMMAND_BUTTON_CLICKED, manipulationTab::onButtonOpenHand)
+EVT_COMMAND(id_button_CloseHand, wxEVT_COMMAND_BUTTON_CLICKED, manipulationTab::onButtonCloseHand)
+EVT_CHECKBOX(id_checkbox_showcollmesh, manipulationTab::onCheckShowCollMesh)
+END_EVENT_TABLE() 
 IMPLEMENT_DYNAMIC_CLASS(manipulationTab, GRIPTab)
 
-/**
- * @function manipulationTab
- * @brief Constructor (TO BE USED WITH MANIPULATION)
- */
+
 manipulationTab::manipulationTab(wxWindow *parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style) :
 GRIPTab(parent, id, pos, size, style) {
-    sizerFull = new wxBoxSizer(wxHORIZONTAL);
+    wxSizer* sizerFull = new wxBoxSizer(wxHORIZONTAL);
 
     // Create Static boxes (outline of your Tab)
     wxStaticBox* ss1Box = new wxStaticBox(this, -1, wxT("Setup"));
@@ -126,7 +128,7 @@ GRIPTab(parent, id, pos, size, style) {
     mController = NULL;
 }
 
-
+/// Setup grasper when scene is loaded as well as populating arm's DoFs
 void manipulationTab::GRIPEventSceneLoaded() {
   // Set initial configuration for the legs
   mWorld->getRobot(mRobotIndex)->getDof(19)->setValue(-10.0 * M_PI/180.0);
@@ -151,65 +153,70 @@ void manipulationTab::GRIPEventSceneLoaded() {
   
 }
 
-void manipulationTab::OnCheckShowCollMesh(wxCommandEvent &evt) {
+/// Handle event for drawing grasp markers
+void manipulationTab::onCheckShowCollMesh(wxCommandEvent &evt) {
 }
 
-void manipulationTab::OnButton(wxCommandEvent & _evt) {
+///Set start configuration to the configuration the arm is currently in
+void manipulationTab::onButtonSetStart(wxCommandEvent& evt){
+    if(!mWorld || mWorld->getNumRobots() < 1){
+        cout << "No world loaded or world does not contain a robot" << endl;
+        return;
+    }
+    mStartConf = mWorld->getRobot(mRobotIndex)->getConfig(mArmDofs);
+    cout << "Start Configuration: " << mStartConf.transpose() << endl;
+}
 
-    int slnum = _evt.GetId();
+///Reset start configuration to predefined one
+void manipulationTab::onButtonSetPredefStart(wxCommandEvent& evt){
+    if(!mWorld || mWorld->getNumRobots() < 1){
+        cout << "No world loaded or world does not contain a robot" << endl;
+        return;
+    }
+    mStartConf = mPredefStartConf;
+}
 
-    switch (slnum) {
-            /** Set start configuration hard-coded (right arm) */
-        case id_button_SetPredefStart: {
-            mStartConf = mPredefStartConf;
-        }
-        break;
-        case id_button_SetStart: {
-            mStartConf = mWorld->getRobot(mRobotIndex)->getConfig(mArmDofs);
-        }
-        break;
-           /** Show set start configuration */
-        case id_button_ShowStart: {
-            if(mStartConf.size()){
-             cout << "Showing start conf for right arm: " << mStartConf.transpose() << endl;
-             mWorld->getRobot(mRobotIndex)->setConfig(mArmDofs, mStartConf);
-             viewer->DrawGLScene();
-            }
-            else{cout << "Must set start conf for right arm first!" << endl;}
-        }
-        break;
-        case id_button_Grasping: {
-            grasp();
-        }
-        break;
-        case id_button_OpenHand: {
-            if(grasper != NULL && palmEName.size()){
-                grasper->openHand();
-                viewer->DrawGLScene();
-            }
-            else{
-                ECHO("ERROR: Must reinitialize Grasper object: Click Grasp Object!")
-            }
-        }
-        break;
-        case id_button_CloseHand: {
-            if(grasper != NULL && palmEName.size()){
-                //close with no target object; no collision checking peformed
-                grasper->closeHand(0.1, selectedNode);
-                viewer->DrawGLScene();
-            }
-            else{
-                ECHO("ERROR: Must reinitialize Grasper object: Click Grasp Object!")
-            }
-        }
-        break;
-            /** Default */
-        default: {
-            printf("Default button \n");
-        }
+///Show the currently set start configuration
+void manipulationTab::onButtonShowStart(wxCommandEvent& evt) {
+    if (mStartConf.size()) {
+        cout << "Showing start conf for right arm: " << mStartConf.transpose() << endl;
+        mWorld->getRobot(mRobotIndex)->setConfig(mArmDofs, mStartConf);
+        viewer->DrawGLScene();
+    } else {
+        ECHO("ERROR: Must set start conf for right arm first!");
     }
 }
 
+///Test currently implemented grasping approach
+void manipulationTab::onButtonDoGrasping(wxCommandEvent& evt){
+    if(!mWorld || mWorld->getNumRobots() < 1){
+        cout << "No world loaded or world does not contain a robot" << endl;
+        return;
+    }
+    grasp();
+}
+
+///Close robot's end effector
+void manipulationTab::onButtonOpenHand(wxCommandEvent& evt) {
+    if (grasper != NULL && palmEName.size()) {
+        grasper->openHand();
+        viewer->DrawGLScene();
+    } else {
+        ECHO("ERROR: Must reinitialize Grasper object: Click Grasp Object!")
+    }
+}
+
+///Open robot's end effector
+void manipulationTab::onButtonCloseHand(wxCommandEvent& evt) {
+    if (grasper != NULL && palmEName.size()) {
+        grasper->closeHand(0.1, selectedNode);
+        viewer->DrawGLScene();
+    } else {
+        ECHO("ERROR: Must reinitialize Grasper object: Click Grasp Object!")
+    }
+}
+
+/// Set initial dynamic parameters and call grasp planner and controller
 void manipulationTab::grasp() {
     
     if(selectedNode == NULL || mStartConf.size() == 0){ECHO("\tERROR: Must select an object to grasp first!!"); return;}
@@ -262,7 +269,7 @@ void manipulationTab::grasp() {
     
     // Create trajectory; no need to shorten path here
     /*planning::PathShortener pathShortener(mWorld, mRobotIndex, mTotalDofs);
-    pathShortener.shortenPath(path);*/
+    pathShortener.shortenPath(path);
     
     const Eigen::VectorXd maxVelocity = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
     const Eigen::VectorXd maxAcceleration = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
@@ -275,7 +282,7 @@ void manipulationTab::grasp() {
     mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_LAR"), ground->getNode(1));
     mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_RAR"), ground->getNode(1));
 
-    printf("Controller time: %f \n", mWorld->mTime);
+    printf("Controller time: %f \n", mWorld->mTime);*/
     
 }
 
@@ -294,6 +301,7 @@ void manipulationTab::GRIPEventSimulationStart() {
 
 }
 
+/// Store selected node in tree-view data as grasper's objective
 void manipulationTab::GRIPStateChange() {
     if (selectedTreeNode == NULL) {
         return;
@@ -322,38 +330,18 @@ void manipulationTab::GRIPStateChange() {
     }
 }
 
+/// Render grasp' markers such as grasping point and GCP(later)
 void manipulationTab::GRIPEventRender() {
-    glDisable(GL_FOG);
-    glEnable(GL_COLOR_MATERIAL);
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_LIGHTING);
-    
-    glLineWidth(1.5f);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
-    glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_POINT_SMOOTH);
-    
-    glActiveTexture(GL_TEXTURE0); 
-    glEnable( GL_TEXTURE_2D );
-    glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glBindTexture(GL_TEXTURE_2D, GL_TEXTURE_2D);
-    
     mGroundIndex = 0;
-   
-    //draw GCP and graspPoint
+    //draw graspPoint
     if(checkShowCollMesh->IsChecked() && mWorld){        
-        //draw axes origin = GCP
-        //drawAxesWithOrientation(mWorld->getRobot(mRobotIndex)->getNode("GCP")->getWorldTransform(), 0.08);
-        
         //draw axes origin = graspPoint; update everytime to move with object
         drawAxes(graspPoint, 0.08);
     }
     glFlush();
-    
 }
 
+/// Method to draw XYZ axes
 void manipulationTab::drawAxes(Eigen::VectorXd origin, double s){
     glBegin(GL_LINES);
     glColor3f(1, 0, 0);
@@ -370,6 +358,7 @@ void manipulationTab::drawAxes(Eigen::VectorXd origin, double s){
     glEnd();
 }
 
+/// Method to draw XYZ axes with proper orientation. Collaboration with Justin Smith
 void manipulationTab::drawAxesWithOrientation(Eigen::Matrix4d transformation, double s){
     Eigen::Matrix4d basis1up, basis1down, basis2up, basis2down;
     basis1up << s,  0.0, 0.0, 0,
