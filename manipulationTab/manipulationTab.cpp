@@ -305,30 +305,21 @@ void manipulationTab::GRIPEventSimulationStart() {
 
 /// Store selected node in tree-view data as grasper's objective
 void manipulationTab::GRIPStateChange() {
-    if (selectedTreeNode == NULL) {
+    if (!selectedTreeNode) {
         return;
     }
     switch (selectedTreeNode->dType) {
-    case Return_Type_Object: {
-        robotics::Robot* pObject = (robotics::Robot*)(selectedTreeNode->data);
-        selectedNode = pObject->mRoot;
+    case Return_Type_Object:
+    case Return_Type_Robot:
+        selectedNode = ((kinematics::Skeleton*)selectedTreeNode->data)->getRoot();
         break;
-    }
-    case Return_Type_Robot: {
-        robotics::Robot* pRobot = (robotics::Robot*)(selectedTreeNode->data);
-        selectedNode = pRobot->mRoot;
+    case Return_Type_Node:
+        selectedNode = (kinematics::BodyNode*)selectedTreeNode->data;
         break;
-    }
-    case Return_Type_Node: {
-        dynamics::BodyNodeDynamics* pBodyNode = (dynamics::BodyNodeDynamics*)(selectedTreeNode->data);
-        selectedNode = pBodyNode;
-        break;
-    }
-    default: {
+    default:
         fprintf(stderr, "someone else's problem.");
         assert(0);
         exit(1);
-    }
     }
 }
 
