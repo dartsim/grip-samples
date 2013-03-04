@@ -294,9 +294,11 @@ void manipulationTab::GRIPEventSimulationBeforeTimestep() {
     mWorld->getRobot(mRobotIndex)->setInternalForces(positionTorques);
 }
 
+/// Handle simulation events
 void manipulationTab::GRIPEventSimulationAfterTimestep() {
 }
 
+/// Handle simulation events
 void manipulationTab::GRIPEventSimulationStart() {
 
 }

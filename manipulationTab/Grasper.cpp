@@ -226,7 +226,6 @@ namespace planning {
     
     /// Open robot's hand by setting all fingers joints values to 0
     void Grasper::openHand(){
-        PRINT(world->getRobot(robot)->getNode(EEName.c_str())->getNumChildJoints());
         int fingers = world->getRobot(robot)->getNode(EEName.c_str())->getNumChildJoints();
         int jointID = 0;
         for(int i=0; i < fingers; i++){
