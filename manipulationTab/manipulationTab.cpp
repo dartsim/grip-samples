@@ -361,7 +361,7 @@ void manipulationTab::drawAxes(Eigen::VectorXd origin, double s){
 }
 
 /// Method to draw XYZ axes with proper orientation. Collaboration with Justin Smith
-void manipulationTab::drawAxesWithOrientation(Eigen::Matrix4d transformation, double s){
+void manipulationTab::drawAxesWithOrientation(const Eigen::Matrix4d& transformation, double s){
     Eigen::Matrix4d basis1up, basis1down, basis2up, basis2down;
     basis1up << s,  0.0, 0.0, 0,
      				0.0, s,   0.0, 0,
