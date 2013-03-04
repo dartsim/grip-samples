@@ -99,9 +99,7 @@ namespace planning {
         //increase size of every vector in path
         for(list<VectorXd>::iterator it = path.begin(); it != path.end(); it++){
             VectorXd & v (*it);
-            //cout << "BEFORE: " << v << endl;
             v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) = VectorXd::Zero(hand_dofs.size(), 1);
-            //PRINT(v);
         }
         path.push_back(world->getRobot(robot)->getConfig(totalDofs));
         ECHO("Added closed hand config to path!");
@@ -120,6 +118,7 @@ namespace planning {
             for(list<VectorXd>::iterator it = path_back.begin(); it != path_back.end(); it++){
                     VectorXd & v (*it);
                     v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) = world->getRobot(robot)->getConfig(hand_dofs);
+
                     //merge lists
                     path.push_back(v);
             }
@@ -202,7 +201,7 @@ namespace planning {
         bool grasped = false;
         int jointID = 0;
         int iteration = 0;
-        while (!grasped) {
+        while (!grasped && iteration < 10) {
             iteration++;
             grasped = true;
             //iterate through each end-effector joint i.e. 15 joints = 5 x 3 joint per finger
@@ -213,13 +212,19 @@ namespace planning {
                     grasped = false;
                     kinematics::Joint *j(*it);
                     // check for collision and set as colliding if so
-                    colliding_link[link] = moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts);
+                    //QUICK FIX for thumb bug: don't check for collision initially
+                    if(link > 11 && iteration < 2){
+                        colliding_link[link] = moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts, false);
+                    }
+                    else{
+                        colliding_link[link] = moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts, true);
+                    }
                 }
                 link++;
             }
-            // perform additional check to allow for better grasping
+            //perform additional check to allow for better grasping
             if (grasped && iteration > 2) {
-                iteration = 0;
+                //iteration = 0;
                 grasped = false;
 
                 for (int i = 0; i < joints.size(); i++) {
@@ -245,7 +250,7 @@ namespace planning {
     }
     
     /// Increase a joint value with collision checking
-    bool Grasper::moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, vector<ContactPoint> contacts){
+    bool Grasper::moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, vector<ContactPoint> contacts, bool checkCollisions){
         bool ret = true;
         
         double oldJointValue = joint->getDof(0)->getValue();
@@ -256,8 +261,9 @@ namespace planning {
             world->getRobot(robot)->update();
             
             CollisionSkeletonNode* other = world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(target);
+            
             //check collision against child BodyNode and not current Joint
-            if(!world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(joint->getChildNode())->checkCollision(other, &contacts, contacts.size())){
+            if(!checkCollisions || !world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(joint->getChildNode())->checkCollision(other, &contacts, contacts.size())){
                 ret = false;
             }
             else{

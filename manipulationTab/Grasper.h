@@ -91,7 +91,7 @@ namespace planning {
         
     private:
         bool moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, 
-                vector<collision_checking::ContactPoint> contacts);
+                vector<collision_checking::ContactPoint> contacts, bool checkCollisions);
     };
 }
 

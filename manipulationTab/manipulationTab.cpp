@@ -108,7 +108,7 @@ GRIPTab(parent, id, pos, size, style) {
     ss1BoxS->Add(new wxStaticText(this, id_label_Inst, wxT("Instructions:\n[1]Set start conf  [2]Select an object  [3]Click Grasp Object")
                                   ), 0, wxEXPAND);
     // Grasping
-    ss2BoxS->Add(new wxButton(this, id_button_Grasping, wxT("Grasp Object")), 0, wxALL, 1);
+    ss2BoxS->Add(new wxButton(this, id_button_Grasping, wxT("Plan Grasping")), 0, wxALL, 1);
     checkShowCollMesh = new wxCheckBox(this, id_checkbox_showcollmesh, wxT("Show Grasp Markers"));
     ss2BoxS->Add(checkShowCollMesh, 0, wxALL, 1);
    
