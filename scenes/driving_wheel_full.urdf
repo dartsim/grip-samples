@@ -7,7 +7,7 @@
     </visual>
     <collision>
       <geometry>
-	<mesh filename="objects/logitech_driving_force_pro_wheel_base_small.stl" scale="0.025399986 0.025399986 0.025399986"/>
+	<mesh filename="objects/logitech_driving_force_pro_wheel_base_small.3ds" scale="0.025399986 0.025399986 0.025399986"/>
       </geometry>
     </collision>
     <inertial>
@@ -25,7 +25,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="objects/logitech_driving_force_pro_wheel_small.stl" scale="0.025399986 0.025399986 0.025399986"/>
+        <mesh filename="objects/logitech_driving_force_pro_wheel_small.3ds" scale="0.025399986 0.025399986 0.025399986"/>
       </geometry>
     </collision>
     <inertial>
