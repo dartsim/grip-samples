@@ -68,7 +68,7 @@ namespace planning {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        Grasper(robotics::World* world, int r, std::string mEEName);
+        Grasper(robotics::World* world, robotics::Robot* r, std::string mEEName);
         virtual ~Grasper();
         
         void init(std::vector<int> &dofs, Eigen::VectorXd &start, kinematics::BodyNode* objectNode);
@@ -86,7 +86,7 @@ namespace planning {
         planning::RRT* rrt;
         JointMover* jm;
         
-        int robot;
+        robotics::Robot* robot;
         std::vector<int> dofs;
         std::vector<int> hand_dofs;
         Eigen::VectorXd startConfig;

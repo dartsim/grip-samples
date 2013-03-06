@@ -77,12 +77,12 @@ public:
   planning::Grasper* grasper;
   wxCheckBox* checkShowCollMesh;
   kinematics::BodyNode* selectedNode;
+  robotics::Robot* mRobot;
   
   std::vector<int> mArmDofs;
   Eigen::VectorXd mStartConf;
   Eigen::VectorXd mPredefStartConf;
   Eigen::VectorXd fixedGrasp;
-  int mRobotIndex;
   int mGroundIndex;
   bool mAlreadyFixed;
   std::string palmEName;  

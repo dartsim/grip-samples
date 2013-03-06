@@ -61,7 +61,7 @@ Vector3d graspPoint;
 
 namespace planning {
     
-    Grasper::Grasper(World* w, int r, string mEEName) {
+    Grasper::Grasper(World* w, robotics::Robot* r, string mEEName) {
         world = w;
         robot = r;
         EEName = mEEName;
@@ -92,7 +92,7 @@ namespace planning {
         
         //try to close hand;  //QUICK FIX: expand each vector in path to be 21 DOFs
         totalDofs = dofs;
-        world->getRobot(robot)->update();
+        //robot->update();
         closeHandPositionBased(0.1, objectNode);
         
         //merge DOFS
@@ -102,7 +102,7 @@ namespace planning {
             VectorXd & v (*it);
             v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) = VectorXd::Zero(hand_dofs.size(), 1);
         }
-        path.push_back(world->getRobot(robot)->getConfig(totalDofs));
+        path.push_back(robot->getConfig(totalDofs));
         ECHO("Note: Added closed hand config to path!");
 
         //move grasped object around
@@ -115,10 +115,10 @@ namespace planning {
         // move to 3 target points and store paths
         for(list<VectorXd>::iterator loc = targetPoints.begin(); loc != targetPoints.end(); loc++){
             VectorXd & t(*loc);
-            jm->GoToXYZ(world->getRobot(robot)->getConfig(dofs), t, backPose, path_back);
+            jm->GoToXYZ(robot->getConfig(dofs), t, backPose, path_back);
             for(list<VectorXd>::iterator it = path_back.begin(); it != path_back.end(); it++){
                     VectorXd & v (*it);
-                    v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) = world->getRobot(robot)->getConfig(hand_dofs);
+                    v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) = robot->getConfig(hand_dofs);
 
                     //merge lists
                     path.push_back(v);
@@ -126,10 +126,10 @@ namespace planning {
         }
         //open hand at the end and store such configuration
         openHand();
-        path.push_back(world->getRobot(robot)->getConfig(totalDofs));
+        path.push_back(robot->getConfig(totalDofs));
         
         //reset robot to start configuration
-        world->getRobot(robot)->setConfig(dofs, startConfig);
+        robot->setConfig(dofs, startConfig);
     }
     
     /// Find closest point in target object to be grasped
@@ -158,7 +158,7 @@ namespace planning {
                 //calculate distance between current vertex and GCP
                 Vector3d diff; diff << vertices(0,0), vertices(1,0), vertices(2,0);
                 Vector3d GCP;
-                GCP = world->getRobot(robot)->getNode(EEName.c_str())->getWorldCOM();
+                GCP = robot->getNode(EEName.c_str())->getWorldCOM();
                 diff = diff - GCP;
                 
                 if(min_distance == -1 || diff.norm() < min_distance){
@@ -175,7 +175,7 @@ namespace planning {
         hand_dofs.clear();
         for (int i = 0; i < fingers; i++) {
             //populate list of end-effector joints
-            kinematics::Joint* fingerJoint = world->getRobot(robot)->getNode(EEName.c_str())->getChildJoint(i);
+            kinematics::Joint* fingerJoint = robot->getNode(EEName.c_str())->getChildJoint(i);
             joints.push_back(fingerJoint);
             joints.push_back(fingerJoint->getChildNode()->getChildJoint(0));
             joints.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getChildNode()->getChildJoint(0));
@@ -199,7 +199,7 @@ namespace planning {
             ECHO("ERROR: Must select object to grasp first!");
             return resulting_contacts;
         }
-        int fingers = world->getRobot(robot)->getNode(EEName.c_str())->getNumChildJoints();
+        int fingers = robot->getNode(EEName.c_str())->getNumChildJoints();
         list<kinematics::Joint*> joints;
         vector<int> jointDirections;
         
@@ -247,15 +247,15 @@ namespace planning {
     
     /// Open robot's hand by setting all fingers joints values to 0
     void Grasper::openHand(){
-        int fingers = world->getRobot(robot)->getNode(EEName.c_str())->getNumChildJoints();
+        int fingers = robot->getNode(EEName.c_str())->getNumChildJoints();
         int jointID = 0;
         for(int i=0; i < fingers; i++){
             //set all fingers'joint values to 0
-            kinematics::Joint *fingerJoint = world->getRobot(robot)->getNode(EEName.c_str())->getChildJoint(i);
+            kinematics::Joint *fingerJoint = robot->getNode(EEName.c_str())->getChildJoint(i);
             fingerJoint->getDof(0)->setValue(0);
             fingerJoint->getChildNode()->getChildJoint(jointID)->getDof(0)->setValue(0);
             fingerJoint->getChildNode()->getChildJoint(jointID)->getChildNode()->getChildJoint(0)->getDof(0)->setValue(0);
-            world->getRobot(robot)->update();
+            //robot->update();
         }
     }
     
@@ -274,7 +274,7 @@ namespace planning {
         
         if((newJointValue <= (joint->getDof(0)->getMax()*0.4)) && (newJointValue >= (joint->getDof(0)->getMin()*0.4))){
             joint->getDof(0)->setValue(newJointValue);
-            world->getRobot(robot)->update();
+            //robot->update();
            
             CollisionSkeletonNode* other = world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(target);
             
@@ -284,7 +284,7 @@ namespace planning {
             }
             else{
                 joint->getDof(0)->setValue(oldJointValue);
-                world->getRobot(robot)->update();
+                //robot->update();
             }
         }
         return ret;

@@ -120,7 +120,6 @@ GRIPTab(parent, id, pos, size, style) {
     SetSizer(sizerFull);
 
     // Additional settings
-    mRobotIndex = 0; // We only simulate one robot in this demo so we know its index is 0
     mAlreadyFixed = false;
     mPredefStartConf.resize(6);
     mPredefStartConf << -0.858702, -0.674395, 0.0, -0.337896, 0.0, 0.0;
@@ -129,26 +128,33 @@ GRIPTab(parent, id, pos, size, style) {
 
 /// Setup grasper when scene is loaded as well as populating arm's DoFs
 void manipulationTab::GRIPEventSceneLoaded() {
-    // Set initial configuration for the legs
-    mWorld->getRobot(mRobotIndex)->getDof(19)->setValue(-10.0 * M_PI / 180.0);
-    mWorld->getRobot(mRobotIndex)->getDof(20)->setValue(-10.0 * M_PI / 180.0);
-    mWorld->getRobot(mRobotIndex)->getDof(23)->setValue(20.0 * M_PI / 180.0);
-    mWorld->getRobot(mRobotIndex)->getDof(24)->setValue(20.0 * M_PI / 180.0);
-    mWorld->getRobot(mRobotIndex)->getDof(27)->setValue(-10.0 * M_PI / 180.0);
-    mWorld->getRobot(mRobotIndex)->getDof(28)->setValue(-10.0 * M_PI / 180.0);
-    mWorld->getRobot(mRobotIndex)->update();
+    // Find robot and set initial configuration for the legs
+    for(int i = 0; i < mWorld->getNumSkeletons(); i++){
+        if(mWorld->getSkeleton(i)->getName() == "GolemHubo"){
+            mRobot = (robotics::Robot*) mWorld->getSkeleton(i);
+            break;
+        }
+    }
+    assert(mRobot);
+    mRobot->getDof(19)->setValue(-10.0 * M_PI / 180.0);
+    mRobot->getDof(20)->setValue(-10.0 * M_PI / 180.0);
+    mRobot->getDof(23)->setValue(20.0 * M_PI / 180.0);
+    mRobot->getDof(24)->setValue(20.0 * M_PI / 180.0);
+    mRobot->getDof(27)->setValue(-10.0 * M_PI / 180.0);
+    mRobot->getDof(28)->setValue(-10.0 * M_PI / 180.0);
+    //(robotics::Robot*)robot->update();
 
     // Define right arm nodes
     const string armNodes[] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "Body_RWP"};
     mArmDofs.resize(6);
     for (int i = 0; i < mArmDofs.size(); i++) {
-        mArmDofs[i] = mWorld->getRobot(mRobotIndex)->getNode(armNodes[i].c_str())->getDof(0)->getSkelIndex();
+        mArmDofs[i] = mRobot->getNode(armNodes[i].c_str())->getDof(0)->getSkelIndex();
     }
 
     //Define palm effector name; Note: this is robot dependent!
     palmEName = "Body_RWP";
     // Initialize Grasper; done here in order to allow Close and Open Hand buttons!
-    grasper = new planning::Grasper(mWorld, mRobotIndex, palmEName);
+    grasper = new planning::Grasper(mWorld, mRobot, palmEName);
 }
 
 /// Handle event for drawing grasp markers
@@ -157,17 +163,17 @@ void manipulationTab::onCheckShowCollMesh(wxCommandEvent &evt) {
 
 /// Set start configuration to the configuration the arm is currently in
 void manipulationTab::onButtonSetStart(wxCommandEvent& evt){
-    if(!mWorld || mWorld->getNumRobots() < 1){
+    if(!mWorld || mRobot == NULL){
         cout << "No world loaded or world does not contain a robot" << endl;
         return;
     }
-    mStartConf = mWorld->getRobot(mRobotIndex)->getConfig(mArmDofs);
+    mStartConf = mRobot->getConfig(mArmDofs);
     cout << "Start Configuration: " << mStartConf.transpose() << endl;
 }
 
 /// Reset start configuration to predefined one
 void manipulationTab::onButtonSetPredefStart(wxCommandEvent& evt){
-    if(!mWorld || mWorld->getNumRobots() < 1){
+    if(!mWorld || mRobot == NULL){
         cout << "No world loaded or world does not contain a robot" << endl;
         return;
     }
@@ -178,7 +184,7 @@ void manipulationTab::onButtonSetPredefStart(wxCommandEvent& evt){
 void manipulationTab::onButtonShowStart(wxCommandEvent& evt) {
     if (mStartConf.size()) {
         cout << "Showing start conf for right arm: " << mStartConf.transpose() << endl;
-        mWorld->getRobot(mRobotIndex)->setConfig(mArmDofs, mStartConf);
+        mRobot->setConfig(mArmDofs, mStartConf);
         viewer->DrawGLScene();
     } else {
         ECHO("ERROR: Must set start conf for right arm first!");
@@ -187,7 +193,7 @@ void manipulationTab::onButtonShowStart(wxCommandEvent& evt) {
 
 /// Test currently implemented grasping approach
 void manipulationTab::onButtonDoGrasping(wxCommandEvent& evt){
-    if(!mWorld || mWorld->getNumRobots() < 1){
+    if(!mWorld || mRobot == NULL){
         cout << "No world loaded or world does not contain a robot" << endl;
         return;
     }
@@ -223,23 +229,23 @@ void manipulationTab::grasp() {
         delete mController;
         delete grasper;
         //re-init grasper
-        grasper = new planning::Grasper(mWorld, mRobotIndex, palmEName);
+        grasper = new planning::Grasper(mWorld, mRobot, palmEName);
     } 
     // Store the actuated joints (all except the first 6 which are only a convenience to locate the robot in the world)
-    std::vector<int> actuatedDofs(mWorld->getRobot(mRobotIndex)->getNumDofs() - 6);
+    std::vector<int> actuatedDofs(mRobot->getNumDofs() - 6);
     for (unsigned int i = 0; i < actuatedDofs.size(); i++) {
         actuatedDofs[i] = i + 6;
     }
     
     // Deactivate collision checking between the feet and the ground during planning
     dynamics::SkeletonDynamics* ground = mWorld->getSkeleton("ground");
-    mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_LAR"), ground->getNode(1));
-    mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_RAR"), ground->getNode(1));
+    mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
+    mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
     
     // Define PD controller gains
-    Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
-    Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
-    Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
+    Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mRobot->getNumDofs());
+    Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mRobot->getNumDofs());
+    Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mRobot->getNumDofs());
 
     // Define gains for the ankle PD
     std::vector<int> ankleDofs(2);
@@ -249,10 +255,10 @@ void manipulationTab::grasp() {
     const Eigen::VectorXd ankleDGains = -200.0 * Eigen::VectorXd::Ones(2);
     
     // Update robot's pose
-    mWorld->getRobot(mRobotIndex)->setConfig(mArmDofs, mStartConf);
+    mRobot->setConfig(mArmDofs, mStartConf);
     
     // Create controller
-    mController = new planning::Controller(mWorld->getRobot(mRobotIndex), actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
+    mController = new planning::Controller(mRobot, actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
    
     // Setup grasper
     grasper->init(mArmDofs, mStartConf, selectedNode);
@@ -274,8 +280,8 @@ void manipulationTab::grasp() {
     mController->setTrajectory(trajectory, 0, mTotalDofs);
     
     // Reactivate collision of feet with floor Body_LAR Body_RAR
-    mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_LAR"), ground->getNode(1));
-    mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_RAR"), ground->getNode(1));
+    mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
+    mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
 
     printf("Controller time: %f \n", mWorld->mTime);
     
@@ -283,20 +289,20 @@ void manipulationTab::grasp() {
 
 /// Before each simulation step we set the torques the controller applies to the joints
 void manipulationTab::GRIPEventSimulationBeforeTimestep() {
-    Eigen::VectorXd positionTorques = mController->getTorques(mWorld->getRobot(mRobotIndex)->getPose(), mWorld->getRobot(mRobotIndex)->getQDotVector(), mWorld->mTime);
+    Eigen::VectorXd positionTorques = mController->getTorques(mRobot->getPose(), mRobot->getQDotVector(), mWorld->mTime);
     // section here to control the fingers for force-based grasping
     // instead of position-based grasping
-    mWorld->getRobot(mRobotIndex)->setInternalForces(positionTorques);
+    mRobot->setInternalForces(positionTorques);
     
     //Note: this will be removed once torque-based is implemented; to avoid excerting too much force,
     //check for joint limits and leave joint values fixed
-    VectorXd current = mWorld->getRobot(mRobotIndex)->getConfig(grasper->getHandDofs());
+    VectorXd current = mRobot->getConfig(grasper->getHandDofs());
     if(grasper->checkDofLimit(current) && !mAlreadyFixed){
         mAlreadyFixed = true;
         fixedGrasp = current;
     }
     VectorXd values = (mAlreadyFixed) ? fixedGrasp : current;
-    mWorld->getRobot(mRobotIndex)->setConfig(grasper->getHandDofs(), values);
+    mRobot->setConfig(grasper->getHandDofs(), values);
 }
 
 /// Handle simulation events after timestep

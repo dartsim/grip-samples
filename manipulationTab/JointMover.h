@@ -48,6 +48,7 @@
 #include <Eigen/Core>
 #include <vector>
 #include <dynamics/BodyNodeDynamics.h>
+#include <dynamics/SkeletonDynamics.h>
 #include <robotics/World.h>
 // Macros
 #define PRINT(x) std::cout << #x << " = " << x << std::endl;
@@ -55,7 +56,6 @@
 
 using namespace std;
 using namespace Eigen;
-
 // The speed of each joint, note that the joint values are between -120 to
 // 120 on the robot arm
 const double jointSpeeds = 5.0; // degrees/second
@@ -65,7 +65,7 @@ class JointMover {
     /// Member variables
     double mConfigStep;
     robotics::World &mWorld;
-    int mRobotId;
+    robotics::Robot* mRobot;
     std::vector<int> mLinks;
     
     double mWorkspaceThresh;
@@ -74,7 +74,7 @@ class JointMover {
     int mMaxIter;
     
   public:
-    JointMover( robotics::World &_world, int _robotId, const std::vector<int> &_links,  std::string _EEName,
+    JointMover( robotics::World &_world, robotics::Robot* robot, const std::vector<int> &_links,  std::string _EEName,
         double _configStep = 0.1 );
     MatrixXd GetPseudoInvJac();
     
