@@ -81,10 +81,10 @@ public:
   std::vector<int> mArmDofs;
   Eigen::VectorXd mStartConf;
   Eigen::VectorXd mPredefStartConf;
-
+  Eigen::VectorXd fixedGrasp;
   int mRobotIndex;
   int mGroundIndex;
-  int mCurrentFrame;
+  bool mAlreadyFixed;
   std::string palmEName;  
   
   DECLARE_DYNAMIC_CLASS(manipulationTab)

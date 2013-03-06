@@ -54,6 +54,7 @@
 #include <kinematics/Joint.h>
 #include <collision/CollisionSkeleton.h>
 #include "JointMover.h"
+#include "Controller.h"
 namespace robotics {
     class World;
 }
@@ -73,8 +74,12 @@ namespace planning {
         void init(std::vector<int> &dofs, Eigen::VectorXd &start, kinematics::BodyNode* objectNode);
         void plan(std::list<Eigen::VectorXd> &path, std::vector<int> &dofs);
         double findClosestGraspingPoint(Eigen::Vector3d &closest);
-        vector<collision_checking::ContactPoint> closeHand(double stepSize, kinematics::BodyNode* target);
+        vector<collision_checking::ContactPoint> closeHandPositionBased(double stepSize, kinematics::BodyNode* target);
+        void populateEndEffIds(int fingers, list<kinematics::Joint*> &joints, vector<int> &jointDirections);
         void openHand();
+        std::vector<int> getHandDofs();
+        void printVectorContents(std::vector<int> v);
+        bool checkDofLimit(Eigen::VectorXd v);
         
     protected:
         robotics::World* world;

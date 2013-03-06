@@ -102,7 +102,7 @@ bool JointMover::GoToXYZ( VectorXd _qStart, VectorXd _targetXYZ, VectorXd &_qRes
     path.push_back(_qResult);
     
     dXYZ = (_targetXYZ - GetXYZ(_qResult) );
-    PRINT(dXYZ.norm());
+    //PRINT(dXYZ.norm());
     iter++;
   }
   

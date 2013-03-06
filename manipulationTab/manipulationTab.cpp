@@ -120,9 +120,8 @@ GRIPTab(parent, id, pos, size, style) {
     SetSizer(sizerFull);
 
     // Additional settings
-    mCurrentFrame = 0;
     mRobotIndex = 0; // We only simulate one robot in this demo so we know its index is 0
-
+    mAlreadyFixed = false;
     mPredefStartConf.resize(6);
     mPredefStartConf << -0.858702, -0.674395, 0.0, -0.337896, 0.0, 0.0;
     mController = NULL;
@@ -130,27 +129,26 @@ GRIPTab(parent, id, pos, size, style) {
 
 /// Setup grasper when scene is loaded as well as populating arm's DoFs
 void manipulationTab::GRIPEventSceneLoaded() {
-  // Set initial configuration for the legs
-  mWorld->getRobot(mRobotIndex)->getDof(19)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(20)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(23)->setValue(20.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(24)->setValue(20.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(27)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(28)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->update();
- 
-  // Define right arm nodes
-  const string armNodes[] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "Body_RWP"};
-  mArmDofs.resize(6);
-  for(int i = 0; i < mArmDofs.size(); i++) {
-    mArmDofs[i] = mWorld->getRobot(mRobotIndex)->getNode(armNodes[i].c_str())->getDof(0)->getSkelIndex();
-  }
-  
-  //Define palm effector name; Note: this is robot dependent!
-  palmEName = "Body_RWP";
-  // Initialize Grasper; done here in order to allow Close and Open Hand buttons!
-  grasper = new planning::Grasper(mWorld, mRobotIndex, palmEName);
-  
+    // Set initial configuration for the legs
+    mWorld->getRobot(mRobotIndex)->getDof(19)->setValue(-10.0 * M_PI / 180.0);
+    mWorld->getRobot(mRobotIndex)->getDof(20)->setValue(-10.0 * M_PI / 180.0);
+    mWorld->getRobot(mRobotIndex)->getDof(23)->setValue(20.0 * M_PI / 180.0);
+    mWorld->getRobot(mRobotIndex)->getDof(24)->setValue(20.0 * M_PI / 180.0);
+    mWorld->getRobot(mRobotIndex)->getDof(27)->setValue(-10.0 * M_PI / 180.0);
+    mWorld->getRobot(mRobotIndex)->getDof(28)->setValue(-10.0 * M_PI / 180.0);
+    mWorld->getRobot(mRobotIndex)->update();
+
+    // Define right arm nodes
+    const string armNodes[] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "Body_RWP"};
+    mArmDofs.resize(6);
+    for (int i = 0; i < mArmDofs.size(); i++) {
+        mArmDofs[i] = mWorld->getRobot(mRobotIndex)->getNode(armNodes[i].c_str())->getDof(0)->getSkelIndex();
+    }
+
+    //Define palm effector name; Note: this is robot dependent!
+    palmEName = "Body_RWP";
+    // Initialize Grasper; done here in order to allow Close and Open Hand buttons!
+    grasper = new planning::Grasper(mWorld, mRobotIndex, palmEName);
 }
 
 /// Handle event for drawing grasp markers
@@ -209,7 +207,7 @@ void manipulationTab::onButtonOpenHand(wxCommandEvent& evt) {
 /// Open robot's end effector
 void manipulationTab::onButtonCloseHand(wxCommandEvent& evt) {
     if (grasper != NULL && palmEName.size()) {
-        grasper->closeHand(0.1, selectedNode);
+        grasper->closeHandPositionBased(0.1, selectedNode);
         viewer->DrawGLScene();
     } else {
         ECHO("ERROR: Must reinitialize Grasper object: Click Grasp Object!")
@@ -289,15 +287,24 @@ void manipulationTab::GRIPEventSimulationBeforeTimestep() {
     // section here to control the fingers for force-based grasping
     // instead of position-based grasping
     mWorld->getRobot(mRobotIndex)->setInternalForces(positionTorques);
+    
+    //Note: this will be removed once torque-based is implemented; to avoid excerting too much force,
+    //check for joint limits and leave joint values fixed
+    VectorXd current = mWorld->getRobot(mRobotIndex)->getConfig(grasper->getHandDofs());
+    if(grasper->checkDofLimit(current) && !mAlreadyFixed){
+        mAlreadyFixed = true;
+        fixedGrasp = current;
+    }
+    VectorXd values = (mAlreadyFixed) ? fixedGrasp : current;
+    mWorld->getRobot(mRobotIndex)->setConfig(grasper->getHandDofs(), values);
 }
 
-/// Handle simulation events
+/// Handle simulation events after timestep
 void manipulationTab::GRIPEventSimulationAfterTimestep() {
 }
 
-/// Handle simulation events
+/// Handle simulation start events
 void manipulationTab::GRIPEventSimulationStart() {
-
 }
 
 /// Store selected node in tree-view data as grasper's objective
@@ -349,34 +356,34 @@ void manipulationTab::drawAxes(Eigen::VectorXd origin, double s){
 }
 
 /// Method to draw XYZ axes with proper orientation. Collaboration with Justin Smith
-void manipulationTab::drawAxesWithOrientation(const Eigen::Matrix4d& transformation, double s){
+void manipulationTab::drawAxesWithOrientation(const Eigen::Matrix4d& transformation, double s) {
     Eigen::Matrix4d basis1up, basis1down, basis2up, basis2down;
-    basis1up << s,  0.0, 0.0, 0,
-     				0.0, s,   0.0, 0,
-     				0.0, 0.0, s,   0,
-     				1.0, 1.0, 1.0, 1;
-     				
-    basis1down << -s,  0.0, 0.0, 0,
-     				0.0, -s,   0.0, 0,
-     				0.0, 0.0, -s,   0,
-     				1.0, 1.0, 1.0, 1;
-    
+    basis1up << s, 0.0, 0.0, 0,
+            0.0, s, 0.0, 0,
+            0.0, 0.0, s, 0,
+            1.0, 1.0, 1.0, 1;
+
+    basis1down << -s, 0.0, 0.0, 0,
+            0.0, -s, 0.0, 0,
+            0.0, 0.0, -s, 0,
+            1.0, 1.0, 1.0, 1;
+
     basis2up = transformation * basis1up;
     basis2down = transformation * basis1down;
-    
-    
+
+
     glBegin(GL_LINES);
     glColor3f(1, 0, 0);
-    glVertex3f(basis2down(0,0), basis2down(1,0), basis2down(2,0));
-    glVertex3f(basis2up(0,0), basis2up(1,0), basis2up(2,0));
+    glVertex3f(basis2down(0, 0), basis2down(1, 0), basis2down(2, 0));
+    glVertex3f(basis2up(0, 0), basis2up(1, 0), basis2up(2, 0));
 
     glColor3f(0, 0, 1);
-    glVertex3f(basis2down(0,1), basis2down(1,1), basis2down(2,1));
-    glVertex3f(basis2up(0,1), basis2up(1,1), basis2up(2,1));
+    glVertex3f(basis2down(0, 1), basis2down(1, 1), basis2down(2, 1));
+    glVertex3f(basis2up(0, 1), basis2up(1, 1), basis2up(2, 1));
 
     glColor3f(0, 1, 0);
-    glVertex3f(basis2down(0,2), basis2down(1,2), basis2down(2,2));
-    glVertex3f(basis2up(0,2), basis2up(1,2), basis2up(2,2));
+    glVertex3f(basis2down(0, 2), basis2down(1, 2), basis2down(2, 2));
+    glVertex3f(basis2up(0, 2), basis2up(1, 2), basis2up(2, 2));
     glEnd();
 }
 
