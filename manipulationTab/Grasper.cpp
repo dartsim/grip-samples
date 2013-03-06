@@ -255,7 +255,7 @@ namespace planning {
             fingerJoint->getDof(0)->setValue(0);
             fingerJoint->getChildNode()->getChildJoint(jointID)->getDof(0)->setValue(0);
             fingerJoint->getChildNode()->getChildJoint(jointID)->getChildNode()->getChildJoint(0)->getDof(0)->setValue(0);
-            //robot->update();
+            robot->update();
         }
     }
     
@@ -274,7 +274,7 @@ namespace planning {
         
         if((newJointValue <= (joint->getDof(0)->getMax()*0.4)) && (newJointValue >= (joint->getDof(0)->getMin()*0.4))){
             joint->getDof(0)->setValue(newJointValue);
-            //robot->update();
+            robot->update();
            
             CollisionSkeletonNode* other = world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(target);
             
@@ -284,7 +284,7 @@ namespace planning {
             }
             else{
                 joint->getDof(0)->setValue(oldJointValue);
-                //robot->update();
+                robot->update();
             }
         }
         return ret;

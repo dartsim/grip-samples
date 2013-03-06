@@ -142,7 +142,7 @@ void manipulationTab::GRIPEventSceneLoaded() {
     mRobot->getDof(24)->setValue(20.0 * M_PI / 180.0);
     mRobot->getDof(27)->setValue(-10.0 * M_PI / 180.0);
     mRobot->getDof(28)->setValue(-10.0 * M_PI / 180.0);
-    //(robotics::Robot*)robot->update();
+    mRobot->update();
 
     // Define right arm nodes
     const string armNodes[] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "Body_RWP"};
