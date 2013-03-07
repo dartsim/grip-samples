@@ -104,15 +104,14 @@ namespace planning {
         }
         path.push_back(robot->getConfig(totalDofs));
         ECHO("Note: Added closed hand config to path!");
-
+        //PRINT(robot->getConfig(totalDofs));
         //move grasped object around
         list<VectorXd> targetPoints; 
-        VectorXd v(3); v << 0.33,-0.10, 1.17; targetPoints.push_back(v);
-        VectorXd w(3); w << 0.33,-0.12, 1.15; targetPoints.push_back(w);
-        VectorXd u(3); u << 0.33,-0.6, 1.14; targetPoints.push_back(u);
+        VectorXd v(3); v << 0.33,-0.10, 1.0; targetPoints.push_back(v);
+        VectorXd w(3); w << 0.33,-0.16, 1.0; targetPoints.push_back(w);
         VectorXd backPose(6);
         list<VectorXd> path_back;
-        // move to 3 target points and store paths
+        // move to as many target points as wished and store paths
         for(list<VectorXd>::iterator loc = targetPoints.begin(); loc != targetPoints.end(); loc++){
             VectorXd & t(*loc);
             jm->GoToXYZ(robot->getConfig(dofs), t, backPose, path_back);
@@ -171,14 +170,14 @@ namespace planning {
     }
     
     /// Method creates a list of joints and a vector with their respective directions-robot dependent-; populates the hand_dofs vector
-    void Grasper::populateEndEffIds(int fingers, list<kinematics::Joint*> &joints, vector<int> &jointDirections){
+    void Grasper::populateEndEffIds(int fingers, list<kinematics::Joint*> &js, vector<int> &jointDirections){
         hand_dofs.clear();
         for (int i = 0; i < fingers; i++) {
             //populate list of end-effector joints
             kinematics::Joint* fingerJoint = robot->getNode(EEName.c_str())->getChildJoint(i);
-            joints.push_back(fingerJoint);
-            joints.push_back(fingerJoint->getChildNode()->getChildJoint(0));
-            joints.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getChildNode()->getChildJoint(0));
+            js.push_back(fingerJoint);
+            js.push_back(fingerJoint->getChildNode()->getChildJoint(0));
+            js.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getChildNode()->getChildJoint(0));
 
             //populate list of joint directions; finger joint grows - ,while distal and medial grow +
             jointDirections.push_back(-1);
@@ -200,7 +199,6 @@ namespace planning {
             return resulting_contacts;
         }
         int fingers = robot->getNode(EEName.c_str())->getNumChildJoints();
-        list<kinematics::Joint*> joints;
         vector<int> jointDirections;
         
         //first build list of joints
@@ -232,8 +230,8 @@ namespace planning {
                     }
                 }
             }
-            //perform additional check to allow for better grasping
-            if (grasped && iteration > 2) {
+            //perform additional check to allow for better grasping only before more than half the links are already in contact
+            if (grasped && iteration > 2 && colliding_link.size() < 7) {
                 iteration = 0; 
                 grasped = false;
 
@@ -296,11 +294,15 @@ namespace planning {
             cout << "vector[" << i << "]--" << v.at(i) << endl;
     }
     
-    /// Check if any of the joint values is over a hardcoded max
-    bool Grasper::checkDofLimit(Eigen::VectorXd v){
-        for(int i = 0; i < v.size(); i++)
-            if(v.coeff(i,0) > 1.4 || v.coeff(i,0) < -1.4)
-                return true;
-        return false;
+    /// Check how many of the links are colliding with target node
+    int Grasper::checkHandCollisionCount(){
+        vector<ContactPoint> contacts(50);
+        int count = 0;
+        CollisionSkeletonNode* other = world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(objectNode);
+        for(list<kinematics::Joint*>::iterator loc = joints.begin(); loc != joints.end(); loc++){
+             kinematics::Joint *j(*loc);
+            count += (world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(j->getChildNode())->checkCollision(other, &contacts, contacts.size()) > 0);
+        }
+        return count;
     }
 }

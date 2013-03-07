@@ -293,16 +293,6 @@ void manipulationTab::GRIPEventSimulationBeforeTimestep() {
     // section here to control the fingers for force-based grasping
     // instead of position-based grasping
     mRobot->setInternalForces(positionTorques);
-    
-    //Note: this will be removed once torque-based is implemented; to avoid excerting too much force,
-    //check for joint limits and leave joint values fixed
-    VectorXd current = mRobot->getConfig(grasper->getHandDofs());
-    if(grasper->checkDofLimit(current) && !mAlreadyFixed){
-        mAlreadyFixed = true;
-        fixedGrasp = current;
-    }
-    VectorXd values = (mAlreadyFixed) ? fixedGrasp : current;
-    mRobot->setConfig(grasper->getHandDofs(), values);
 }
 
 /// Handle simulation events after timestep

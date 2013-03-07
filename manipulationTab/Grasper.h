@@ -75,11 +75,10 @@ namespace planning {
         void plan(std::list<Eigen::VectorXd> &path, std::vector<int> &dofs);
         double findClosestGraspingPoint(Eigen::Vector3d &closest);
         vector<collision_checking::ContactPoint> closeHandPositionBased(double stepSize, kinematics::BodyNode* target);
-        void populateEndEffIds(int fingers, list<kinematics::Joint*> &joints, vector<int> &jointDirections);
         void openHand();
         std::vector<int> getHandDofs();
         void printVectorContents(std::vector<int> v);
-        bool checkDofLimit(Eigen::VectorXd v);
+        int checkHandCollisionCount();
         
     protected:
         robotics::World* world;
@@ -89,12 +88,14 @@ namespace planning {
         robotics::Robot* robot;
         std::vector<int> dofs;
         std::vector<int> hand_dofs;
+        list<kinematics::Joint*> joints;
         Eigen::VectorXd startConfig;
         Eigen::VectorXd objectConfig;
         kinematics::BodyNode* objectNode;
         std::string EEName;
         
     private:
+        void populateEndEffIds(int fingers, list<kinematics::Joint*> &joints, vector<int> &jointDirections);
         bool moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, 
                 vector<collision_checking::ContactPoint> contacts, bool checkCollisions);
     };
