@@ -90,9 +90,8 @@ namespace planning {
         //perform translation Jacobian towards grasping point computed
         jm->GoToXYZ(startConfig, graspPoint, goalPose, path);
         
-        //try to close hand;  //QUICK FIX: expand each vector in path to be 21 DOFs
+        //try to close hand; 
         totalDofs = dofs;
-        //robot->update();
         closeHandPositionBased(0.1, objectNode);
         
         //merge DOFS
@@ -118,6 +117,7 @@ namespace planning {
         
         //For driving wheel
         //VectorXd v(3); v << 0.30, 0.04, 0.7;
+        //VectorXd w(3); w << 0.30, 0.04, 0.9;
         
         targetPoints.push_back(v);
         targetPoints.push_back(w);
@@ -205,6 +205,7 @@ namespace planning {
     
     /// Modifications of idea provided by Asfour et. al. GraspRRT on Robotics and Automation Magazine, 2012
     vector<ContactPoint> Grasper::closeHandPositionBased(double step, kinematics::BodyNode* target) {
+        
         vector<ContactPoint> resulting_contacts(100); 
         if (target == NULL) {
             ECHO("ERROR: Must select object to grasp first!");
@@ -234,12 +235,8 @@ namespace planning {
                     // check for collision and set as colliding if so; set corresponding 
                     // link collision status to true or false; disregard for thumb
                     // QUICK FIX for thumb bug: don't check for collision initially
-                    if(link > 11){
-                        colliding_link[link] = moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts, false);
-                    }
-                    else{
-                        colliding_link[link] = moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts, true);
-                    }
+                    colliding_link[link] = (link > 11) ? moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts, false) : 
+                    moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts, true);
                 }
             }
             //perform additional check to allow for better grasping only before more than half the links are already in contact
