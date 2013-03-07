@@ -233,7 +233,7 @@ namespace planning {
                     
                     // check for collision and set as colliding if so; set corresponding 
                     // link collision status to true or false; disregard for thumb
-                    // QUICK FIX for thumb bug: don't check for collision initially || (link >= 6 && link < 9)
+                    // QUICK FIX for thumb bug: don't check for collision initially
                     if(link > 11){
                         colliding_link[link] = moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts, false);
                     }
