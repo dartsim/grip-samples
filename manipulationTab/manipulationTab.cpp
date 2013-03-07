@@ -105,7 +105,7 @@ GRIPTab(parent, id, pos, size, style) {
     ss1BoxS->Add(new wxButton(this, id_button_SetPredefStart, wxT("Set Predef Start")), 0, wxALL, 1);
     ss1BoxS->Add(new wxButton(this, id_button_SetStart, wxT("Set Custom Start")), 0, wxALL, 1);
     ss1BoxS->Add(new wxButton(this, id_button_ShowStart, wxT("Show Start Conf")), 0, wxALL, 1);
-    ss1BoxS->Add(new wxStaticText(this, id_label_Inst, wxT("Instructions:\n[1]Set start conf  [2]Select an object  [3]Click Grasp Object")
+    ss1BoxS->Add(new wxStaticText(this, id_label_Inst, wxT("Instructions:\n[1]Set start conf  [2]Select an object  [3]Click Plan Grasping")
                                   ), 0, wxEXPAND);
     // Grasping
     ss2BoxS->Add(new wxButton(this, id_button_Grasping, wxT("Plan Grasping")), 0, wxALL, 1);
