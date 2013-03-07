@@ -1,7 +1,13 @@
 cmake_minimum_required (VERSION 2.6)
 project (planningTab)
 
-message (STATUS "Creating Makefile for pushDemoTab")
+message (STATUS "Creating Makefile for planningTab")
+
+IF(NOT CMAKE_BUILD_TYPE)
+   SET(CMAKE_BUILD_TYPE Release CACHE STRING
+       "Choose the type of build, options are: None Debug Release RelWithDebInfo Profile."
+       FORCE)
+ENDIF(NOT CMAKE_BUILD_TYPE)
 
 if(WIN32)
   set (CMAKE_INSTALL_PREFIX "C:/Golems" CACHE PATH "Install prefix" FORCE)
@@ -12,9 +18,12 @@ if(WIN32)
   set (CMAKE_EXE_LINKER_FLAGS "/LTCG")
   set (CMAKE_MODULE_LINKER_FLAGS "/LTCG")
 else ()
-  set (CMAKE_INSTALL_PREFIX /usr )
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2 -O3  -std=c++0x")
-  set(CMAKE_CXX_FLAGS_PROFILE "-pg" CACHE STRING "Profiling flags")
+  set(CMAKE_INSTALL_PREFIX /usr )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2 -std=c++0x")
+  set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+  set(CMAKE_CXX_FLAGS_DEBUG "-g -fno-omit-frame-pointer -fno-inline-functions -fno-inline-functions-called-once -fno-optimize-sibling-calls")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_DEBUG}")
+  set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_DEBUG} -pg")
 endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX}/share/dart")
