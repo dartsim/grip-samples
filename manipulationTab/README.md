@@ -16,5 +16,7 @@ Please note that this is just a basic manipulation strategy in order to show DAR
 ----------------
 This code is a modification of original JTFollower.cpp provided by Ana Huaman where a translation Jacobian is computed for a robot's end effector. Additions include several speedups, configurations comparison, among others.
 
-----------------
-For step-by-step instructions, refer to [[Manipulation Tab Tutorial]]
+
+`Tutorial`
+----------
+For step-by-step instructions, refer to [Manipulation Tab Tutorial](https://github.com/golems/grip-samples/wiki/Manipulation-Tab-Tutorial)
