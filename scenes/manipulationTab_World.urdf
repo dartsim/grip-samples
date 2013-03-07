@@ -3,7 +3,11 @@
   <include filename="hubo-models/huboplus.urdf" model_name="jaemi"/>
   <include filename="glassDiningTable2.urdf" model_name="glassDiningTable2"/>
   <include filename="bar.urdf" model_name="bar"/>
-  <include filename="dumbbell.urdf" model_name="dumbbell"/>
+  <include filename="greenBar.urdf" model_name="greenBar"/>
+  <include filename="blueBar.urdf" model_name="blueBar"/>
+  <include filename="orangeDumbbell.urdf" model_name="dumbbell"/>
+  <include filename="redDonut.urdf" model_name="donut"/>
+  <include filename="greenCubeObject.urdf" model_name="box"/>
   <entity model="jaemi" name="GolemHubo">
     <origin xyz="0 0 0.988" rpy="0 0 0"/>
   </entity>
@@ -12,12 +16,25 @@
     <origin xyz="0.40 -0.13 0.45" rpy="1.57 0.0 0.0"/>
   </entity>
 
-  <entity model="bar" name="bar">
-    <origin xyz="0.33 -0.22 0.784" rpy="1.57 0.0 0.0"/>
-  </entity>
-
+  <!-- Current implementation works better with single objects: uncomment others for testing-->
+  <!--<entity model="greenBar" name="green bar">
+    <origin xyz="0.33 -0.12 0.782" rpy="3.14 0.0 0.0"/>
+   </entity>-->
+  
+  <entity model="blueBar" name="blue bar">
+    <origin xyz="0.33 -0.10 0.784" rpy="3.14 0.0 0.0"/>
+   </entity>
+ 
   <!--<entity model="dumbbell" name="dumbbell">
-    <origin xyz="0.33 -0.22 0.784" rpy="1.57 0.0 0.0"/>
-  </entity>-->
+    <origin xyz="0.33 -0.10 0.784" rpy="3.14 0.0 0.0"/>
+   </entity>
+
+  <entity model="donut" name="life saver">
+    <origin xyz="0.33 -0.07 0.935" rpy="3.10 0.0 0.0"/>
+   </entity>
+ 
+  <entity model="box" name="box">
+    <origin xyz="0.33 0.17 0.880" rpy="1.57 0.0 0.0"/>
+   </entity> -->
 
 </world>

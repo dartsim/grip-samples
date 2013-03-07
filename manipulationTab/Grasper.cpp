@@ -60,7 +60,8 @@ using namespace collision_checking;
 Vector3d graspPoint;
 
 namespace planning {
-    Grasper::Grasper(World* w, int r, string mEEName) {
+    
+    Grasper::Grasper(World* w, robotics::Robot* r, string mEEName) {
         world = w;
         robot = r;
         EEName = mEEName;
@@ -70,6 +71,7 @@ namespace planning {
         delete jm;
     }
     
+    /// Finish initialization of grasper by providing end effector's links ids, start configuration and target object
     void Grasper::init(std::vector<int>& d, Eigen::VectorXd& start, kinematics::BodyNode* node){
         dofs = d; 
         startConfig = start;
@@ -79,9 +81,10 @@ namespace planning {
         jm = new JointMover(*world, robot, dofs, EEName, 0.01);
     }
     
+    /// Attempt a grasp at a target object
     void Grasper::plan(list<VectorXd> &path, vector<int> &totalDofs) {
         //find closest point in target object; grasp target point
-        int min = calculateMinDistance(graspPoint); 
+        int min = findClosestGraspingPoint(graspPoint); 
         VectorXd goalPose(6);
         
         //perform translation Jacobian towards grasping point computed
@@ -89,47 +92,65 @@ namespace planning {
         
         //try to close hand;  //QUICK FIX: expand each vector in path to be 21 DOFs
         totalDofs = dofs;
-        closeHand(0.1, objectNode);
+        //robot->update();
+        closeHandPositionBased(0.1, objectNode);
+        
         //merge DOFS
         totalDofs.insert(totalDofs.end(), hand_dofs.begin(), hand_dofs.end());
         //increase size of every vector in path
         for(list<VectorXd>::iterator it = path.begin(); it != path.end(); it++){
             VectorXd & v (*it);
-            v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) << 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+            v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) = VectorXd::Zero(hand_dofs.size(), 1);
         }
-        path.push_back(world->getRobot(robot)->getConfig(totalDofs));
-        ECHO("Added closed hand config to path!");
-        //PRINT(world->getRobot(robot)->getConfig(totalDofs));
+        path.push_back(robot->getConfig(totalDofs));
+        ECHO("Note: Added closed hand config to path!");
+        
         //move grasped object around
         list<VectorXd> targetPoints; 
-        VectorXd v(3); v << 0.33,-0.10, 1.17; targetPoints.push_back(v);
-        VectorXd w(3); w << 0.33,-0.12, 1.15; targetPoints.push_back(w);
-        VectorXd u(3); u << 0.33,-0.6, 1.14; targetPoints.push_back(u);
+        
+        //Note: Use this target points for all objects except for the life saver and the driving wheel 
+        VectorXd v(3); v << 0.33,-0.10, 1.0; 
+        VectorXd w(3); w << 0.33,-0.16, 1.0; 
+        
+        //For life saver
+        //VectorXd v(3); v << 0.33, -0.27, 1.0;
+        //VectorXd w(3); w << 0.33, -0.16, 1.2;
+        
+        //For driving wheel
+        //VectorXd v(3); v << 0.30, 0.04, 0.7;
+        
+        targetPoints.push_back(v);
+        targetPoints.push_back(w);
         VectorXd backPose(6);
         list<VectorXd> path_back;
-        // move to 3 target points and store paths
+        // move to as many target points as wished and store paths
         for(list<VectorXd>::iterator loc = targetPoints.begin(); loc != targetPoints.end(); loc++){
             VectorXd & t(*loc);
-            jm->GoToXYZ(world->getRobot(robot)->getConfig(dofs), t, backPose, path_back);
+            jm->GoToXYZ(robot->getConfig(dofs), t, backPose, path_back);
             for(list<VectorXd>::iterator it = path_back.begin(); it != path_back.end(); it++){
                     VectorXd & v (*it);
-                    v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) = world->getRobot(robot)->getConfig(hand_dofs);
+                    v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) = robot->getConfig(hand_dofs);
+
                     //merge lists
                     path.push_back(v);
             }
         }
         //open hand at the end and store such configuration
         openHand();
-        path.push_back(world->getRobot(robot)->getConfig(totalDofs));
+        path.push_back(robot->getConfig(totalDofs));
+        
+        //reset robot to start configuration
+        robot->setConfig(dofs, startConfig);
     }
- 
-    double Grasper::calculateMinDistance(Vector3d &closest){
+    
+    /// Find closest point in target object to be grasped
+    double Grasper::findClosestGraspingPoint(Vector3d &closest){
         //1. get collision meshes and vertices
     	kinematics::ShapeMesh* shapeMesh = dynamic_cast<kinematics::ShapeMesh *>(objectNode->getCollisionShape());
 
-    	if(!shapeMesh)
+    	if(!shapeMesh) {
     		return -1;
-
+        }
         const aiScene* sc = shapeMesh->getMesh();
 
         double min_distance = -1;
@@ -139,7 +160,7 @@ namespace planning {
             Matrix4d worldTrans = objectNode->getWorldTransform();
             const struct aiMesh* mesh = sc->mMeshes[nd->mMeshes[0]];
            
-            //find closest vertex
+            //2. find closest vertex
             for(int j=0; j<mesh->mNumVertices; j++){
                 
                 VectorXd vertices(4); vertices <<  mesh->mVertices[j].x, mesh->mVertices[j].y , mesh->mVertices[j].z, 1;
@@ -148,7 +169,7 @@ namespace planning {
                 //calculate distance between current vertex and GCP
                 Vector3d diff; diff << vertices(0,0), vertices(1,0), vertices(2,0);
                 Vector3d GCP;
-                GCP = world->getRobot(robot)->getNode(EEName.c_str())->getWorldCOM();
+                GCP = robot->getNode(EEName.c_str())->getWorldCOM();
                 diff = diff - GCP;
                 
                 if(min_distance == -1 || diff.norm() < min_distance){
@@ -160,69 +181,140 @@ namespace planning {
         return min_distance;
     }
     
-    bool Grasper::closeHand(double step, kinematics::BodyNode* target){
-        int fingers = world->getRobot(robot)->getNode(EEName.c_str())->getNumChildJoints();
-        int cycles = 0;
-        int max_cycles = 8;
-        set<int> colliding_fingers;
-        bool already = false;
-        int jointID = 0;
-        //close hand until all finger collide
-        while(colliding_fingers.size() < fingers && cycles < max_cycles){
-            for(int i=0; i < fingers; i++){
-                //if finger hasn't collided, keep adding offset
-                if(colliding_fingers.find(i) == colliding_fingers.end()){
-                    //for each finger, get joint value of finger joint, finger's medial and distal
-                    kinematics::Joint *fingerJoint = world->getRobot(robot)->getNode(EEName.c_str())->getChildJoint(i);
-                    
-                    double oldFingerJointValue = fingerJoint->getDof(0)->getValue();
-                    double oldMedialJointValue = fingerJoint->getChildNode()->getChildJoint(jointID)->getDof(0)->getValue();
-                    double oldDistalJointValue = fingerJoint->getChildNode()->getChildJoint(jointID)->getChildNode()->getChildJoint(0)->getDof(0)->getValue();
-                    
-                    //QUICK FIX: build hand DOFs once
-                    if(!already){
-                        //build hand DoFs
-                        hand_dofs.push_back(fingerJoint->getDof(0)->getSkelIndex());//world->getRobot(robot)->getNode(EEName.c_str())->getDof(0)->getSkelIndex());
-                        hand_dofs.push_back(fingerJoint->getChildNode()->getChildJoint(jointID)->getDof(0)->getSkelIndex());//world->getRobot(robot)->getNode(EEName.c_str())->getChildNode(0)->getSkelIndex());
-                        hand_dofs.push_back(fingerJoint->getChildNode()->getChildJoint(jointID)->getChildNode()->getChildJoint(0)->getDof(0)->getSkelIndex());//world->getRobot(robot)->getNode(EEName.c_str())->getChildNode(0)->getChildNode(0)->getSkelIndex());
-                    }
-                    //add increment to close hand; 3x to finger, 2x to medial and reg. to distal
-                    if(oldFingerJointValue >= (-70)){fingerJoint->getDof(0)->setValue((double)oldFingerJointValue - 2.5*step);}
-                    if(oldMedialJointValue <= 15.0){fingerJoint->getChildNode()->getChildJoint(jointID)->getDof(0)->setValue((double)oldMedialJointValue + step);}
-                    if(oldDistalJointValue <= 15.0){fingerJoint->getChildNode()->getChildJoint(jointID)->getChildNode()->getChildJoint(0)->getDof(0)->setValue((double)oldDistalJointValue + step);}
-                    world->getRobot(robot)->update();  
-                    
-                    // check for target object; could be just opening and closing hand
-                    if(target != NULL){
-                        //check collisions for each finger after each move; need to check Medial and Distal joints/nodes
-                        kinematics::BodyNode *medial = fingerJoint->getChildNode()->getChildJoint(jointID)->getChildNode();
-                        kinematics::BodyNode *distal = fingerJoint->getChildNode()->getChildJoint(jointID)->getChildNode()->getChildJoint(0)->getChildNode();
+    /// Method creates a list of joints and a vector with their respective directions-robot dependent-; populates the hand_dofs vector
+    void Grasper::populateEndEffIds(int fingers, list<kinematics::Joint*> &js, vector<int> &jointDirections){
+        hand_dofs.clear();
+        for (int i = 0; i < fingers; i++) {
+            //populate list of end-effector joints
+            kinematics::Joint* fingerJoint = robot->getNode(EEName.c_str())->getChildJoint(i);
+            js.push_back(fingerJoint);
+            js.push_back(fingerJoint->getChildNode()->getChildJoint(0));
+            js.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getChildNode()->getChildJoint(0));
 
-                        vector<ContactPoint> contactPoints(100);
-                        CollisionSkeletonNode* other = world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(objectNode);
-                        int distalColls = world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(distal)->checkCollision(other, &contactPoints, contactPoints.size());
-                        int medialColls = world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(medial)->checkCollision(other, &contactPoints, contactPoints.size());
-                        //if fingerColls > 0, this finger has touched object i.e add to set; give some time to other fingers to collide too
-                        if(distalColls && medialColls && cycles > max_cycles/2){ colliding_fingers.insert(i);};
+            //populate list of joint directions; finger joint grows - ,while distal and medial grow +
+            jointDirections.push_back(-1);
+            jointDirections.push_back(1);
+            jointDirections.push_back(1);
+
+            //populate end-effector's DoF vector
+            hand_dofs.push_back(fingerJoint->getDof(0)->getSkelIndex());
+            hand_dofs.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getDof(0)->getSkelIndex());
+            hand_dofs.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getChildNode()->getChildJoint(0)->getDof(0)->getSkelIndex());
+        }
+    }
+    
+    /// Modifications of idea provided by Asfour et. al. GraspRRT on Robotics and Automation Magazine, 2012
+    vector<ContactPoint> Grasper::closeHandPositionBased(double step, kinematics::BodyNode* target) {
+        vector<ContactPoint> resulting_contacts(100); 
+        if (target == NULL) {
+            ECHO("ERROR: Must select object to grasp first!");
+            return resulting_contacts;
+        }
+        int fingers = robot->getNode(EEName.c_str())->getNumChildJoints();
+        vector<int> jointDirections;
+        
+        //first build list of joints
+        this->populateEndEffIds(fingers, joints, jointDirections);
+  
+        vector<bool> colliding_link(joints.size(), false);
+        bool grasped = false;
+        int jointID = 0;
+        int iteration = 0;
+        while (!grasped) {
+            iteration++;
+            grasped = true;
+            //iterate through each end-effector joint i.e. 15 joints = 5 x 3 joint per finger
+            int link = 0;
+            for (list<kinematics::Joint*>::iterator it = joints.begin(); it != joints.end(); it++, link++) {
+                //check for collision status
+                if (!colliding_link[link]) {
+                    grasped = false;
+                    kinematics::Joint *j(*it);
+                    
+                    // check for collision and set as colliding if so; set corresponding 
+                    // link collision status to true or false; disregard for thumb
+                    // QUICK FIX for thumb bug: don't check for collision initially || (link >= 6 && link < 9)
+                    if(link > 11){
+                        colliding_link[link] = moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts, false);
+                    }
+                    else{
+                        colliding_link[link] = moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts, true);
                     }
                 }
             }
-            already = true;
-            cycles++;
+            //perform additional check to allow for better grasping only before more than half the links are already in contact
+            if (grasped && iteration > 2 && colliding_link.size() < 7) {
+                iteration = 0; 
+                grasped = false;
+
+                for (int i = 0; i < colliding_link.size(); i++) {
+                    colliding_link[i] = false;
+                }
+            }
         }
-        return (colliding_fingers.size() == fingers);
+        return resulting_contacts;
     }
     
+    /// Open robot's hand by setting all fingers joints values to 0
     void Grasper::openHand(){
-        int fingers = world->getRobot(robot)->getNode(EEName.c_str())->getNumChildJoints();
+        int fingers = robot->getNode(EEName.c_str())->getNumChildJoints();
         int jointID = 0;
         for(int i=0; i < fingers; i++){
             //set all fingers'joint values to 0
-            kinematics::Joint *fingerJoint = world->getRobot(robot)->getNode(EEName.c_str())->getChildJoint(i);
+            kinematics::Joint *fingerJoint = robot->getNode(EEName.c_str())->getChildJoint(i);
             fingerJoint->getDof(0)->setValue(0);
             fingerJoint->getChildNode()->getChildJoint(jointID)->getDof(0)->setValue(0);
             fingerJoint->getChildNode()->getChildJoint(jointID)->getChildNode()->getChildJoint(0)->getDof(0)->setValue(0);
-            world->getRobot(robot)->update();
+            robot->update();
         }
+    }
+    
+    /// Return the list of skeleton indices for the hand
+    std::vector<int> Grasper::getHandDofs(){
+        assert(hand_dofs.size() > 0);
+        return hand_dofs;
+    }
+    
+    /// Increase a joint value with collision checking
+    bool Grasper::moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, vector<ContactPoint> contacts, bool checkCollisions){
+        bool ret = true;
+        
+        double oldJointValue = joint->getDof(0)->getValue();
+        double newJointValue = oldJointValue + step*direction;
+        
+        if((newJointValue <= (joint->getDof(0)->getMax()*0.4)) && (newJointValue >= (joint->getDof(0)->getMin()*0.4))){
+            joint->getDof(0)->setValue(newJointValue);
+            robot->update();
+           
+            CollisionSkeletonNode* other = world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(target);
+            
+            //check collision against child BodyNode
+            if(!checkCollisions || !world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(joint->getChildNode())->checkCollision(other, &contacts, contacts.size())){
+                ret = false;
+            }
+            else{
+                joint->getDof(0)->setValue(oldJointValue);
+                robot->update();
+            }
+        }
+        return ret;
+    }
+    
+    /// Print contents of std::vector
+    void Grasper::printVectorContents(std::vector<int> v){
+        for(int i = 0; i < v.size(); i++)
+            cout << "vector[" << i << "]--" << v.at(i) << endl;
+    }
+    
+    /// Check how many of the links are colliding with target node
+    int Grasper::checkHandCollisionCount(){
+        vector<ContactPoint> contacts(10);
+        int count = 0;
+        CollisionSkeletonNode* other = world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(objectNode);
+        for(list<kinematics::Joint*>::iterator loc = joints.begin(); loc != joints.end(); loc++){
+             kinematics::Joint *j(*loc);
+            count += (world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(j->getChildNode())->checkCollision(other, &contacts, contacts.size()) > 0);
+        }
+        return count;
     }
 }

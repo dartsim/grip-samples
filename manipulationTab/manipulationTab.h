@@ -53,37 +53,39 @@ public:
 	      const wxSize & size = wxDefaultSize,
 	      long style = wxTAB_TRAVERSAL);
   virtual ~manipulationTab(){};
-	
-  wxSizer* sizerFull;
-  
-  void OnButton(wxCommandEvent &evt);
-  virtual void GRIPStateChange();
-  
-  // Dynamic Simulation Variables
-  planning::Controller* mController;
-  planning::Grasper* grasper;
-  wxCheckBox* checkShowCollMesh;
-  kinematics::BodyNode* selectedNode;
-  
-  std::vector<int> mArmDofs;
-  Eigen::VectorXd mStartConf;
-  Eigen::VectorXd mPredefStartConf;
-
-  int mRobotIndex;
-  int mGroundIndex;
-  int mCurrentFrame;
-  std::string palmEName;
-  
-  void grasp();
-  void drawAxes(Eigen::VectorXd origin, double size);
-  void drawAxesWithOrientation(Eigen::Matrix4d transformation, double s);
-  void OnCheckShowCollMesh(wxCommandEvent &evt);
   
   virtual void GRIPEventSimulationBeforeTimestep(); /**< Implement to apply forces before simulating a dynamic step */
   virtual void GRIPEventRender();
   virtual void GRIPEventSceneLoaded();
   virtual void GRIPEventSimulationAfterTimestep(); /**< Implement to save world states in simulation*/
   virtual void GRIPEventSimulationStart(); 
+  virtual void GRIPStateChange();
+  
+  void onButtonSetStart(wxCommandEvent &evt);
+  void onButtonSetPredefStart(wxCommandEvent &evt);
+  void onButtonShowStart(wxCommandEvent &evt);
+  void onButtonDoGrasping(wxCommandEvent &evt);
+  void onButtonOpenHand(wxCommandEvent &evt);
+  void onButtonCloseHand(wxCommandEvent &evt);
+  void onCheckShowCollMesh(wxCommandEvent &evt);
+  
+  void grasp();
+  void drawAxes(Eigen::VectorXd origin, double size);
+  void drawAxesWithOrientation(const Eigen::Matrix4d& transformation, double s);
+  
+  planning::Controller* mController;
+  planning::Grasper* grasper;
+  wxCheckBox* checkShowCollMesh;
+  kinematics::BodyNode* selectedNode;
+  robotics::Robot* mRobot;
+  
+  std::vector<int> mArmDofs;
+  Eigen::VectorXd mStartConf;
+  Eigen::VectorXd mPredefStartConf;
+  Eigen::VectorXd fixedGrasp;
+  int mGroundIndex;
+  bool mAlreadyFixed;
+  std::string palmEName;  
   
   DECLARE_DYNAMIC_CLASS(manipulationTab)
   DECLARE_EVENT_TABLE()

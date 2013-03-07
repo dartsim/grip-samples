@@ -54,6 +54,7 @@
 #include <kinematics/Joint.h>
 #include <collision/CollisionSkeleton.h>
 #include "JointMover.h"
+#include "Controller.h"
 namespace robotics {
     class World;
 }
@@ -67,28 +68,36 @@ namespace planning {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        Grasper(robotics::World* world, int r, std::string mEEName);
+        Grasper(robotics::World* world, robotics::Robot* r, std::string mEEName);
         virtual ~Grasper();
         
         void init(std::vector<int> &dofs, Eigen::VectorXd &start, kinematics::BodyNode* objectNode);
-        
         void plan(std::list<Eigen::VectorXd> &path, std::vector<int> &dofs);
-        double calculateMinDistance(Eigen::Vector3d &closest);
-        bool closeHand(double stepSize, kinematics::BodyNode* target);
+        double findClosestGraspingPoint(Eigen::Vector3d &closest);
+        vector<collision_checking::ContactPoint> closeHandPositionBased(double stepSize, kinematics::BodyNode* target);
         void openHand();
+        std::vector<int> getHandDofs();
+        void printVectorContents(std::vector<int> v);
+        int checkHandCollisionCount();
         
     protected:
         robotics::World* world;
-        int robot;
+        planning::RRT* rrt;
+        JointMover* jm;
+        
+        robotics::Robot* robot;
         std::vector<int> dofs;
         std::vector<int> hand_dofs;
+        list<kinematics::Joint*> joints;
         Eigen::VectorXd startConfig;
         Eigen::VectorXd objectConfig;
         kinematics::BodyNode* objectNode;
-        
-        planning::RRT* rrt;
-        JointMover* jm;
         std::string EEName;
+        
+    private:
+        void populateEndEffIds(int fingers, list<kinematics::Joint*> &joints, vector<int> &jointDirections);
+        bool moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, 
+                vector<collision_checking::ContactPoint> contacts, bool checkCollisions);
     };
 }
 

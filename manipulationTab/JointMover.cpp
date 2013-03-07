@@ -54,20 +54,21 @@
 #include <list>
 #include <dart/dynamics/ContactDynamics.h>
 #include <dart/collision/CollisionSkeleton.h>
+#include <dart/dynamics/SkeletonDynamics.h>
 #include "JointMover.h"
 
 using namespace std;
 using namespace Eigen;
 
 const double dt = 0.1;
-JointMover::JointMover( robotics::World &_world, int _robotId, const std::vector<int> &_links,  std::string _EEName,
+JointMover::JointMover( robotics::World &_world, robotics::Robot* robot, const std::vector<int> &_links,  std::string _EEName,
 		       double _configStep)
-  : mConfigStep(_configStep), mWorld(_world), mRobotId(_robotId) {
+  : mConfigStep(_configStep), mWorld(_world), mRobot(robot) {
 
   mLinks = _links;
   mMaxIter = 200;
-  mWorkspaceThresh = 0.006;// An error of half the resolution // dunno why 0.02
-  mEENode = (dynamics::BodyNodeDynamics*)mWorld.getRobot(mRobotId)->getNode(_EEName.c_str());
+  mWorkspaceThresh = 0.006;
+  mEENode = (dynamics::BodyNodeDynamics*)mRobot->getNode(_EEName.c_str());
 }
 
 MatrixXd JointMover::GetPseudoInvJac() {
@@ -94,26 +95,26 @@ VectorXd JointMover::OneStepTowardsXYZ( VectorXd _q, VectorXd _targetXYZ) {
 
 bool JointMover::GoToXYZ( VectorXd _qStart, VectorXd _targetXYZ, VectorXd &_qResult,  std::list<Eigen::VectorXd> &path) {
   _qResult = _qStart;
-  mWorld.getRobot(mRobotId)->update();
+  mRobot->update();
   VectorXd dXYZ = _targetXYZ - GetXYZ(_qResult); // GetXYZ also updates the config to _qResult, so Jaclin use an updated value
   int iter = 0;
   while( dXYZ.norm() > mWorkspaceThresh && iter < mMaxIter ) {
     _qResult = OneStepTowardsXYZ(_qResult, _targetXYZ);
     path.push_back(_qResult);
-   
+    
     dXYZ = (_targetXYZ - GetXYZ(_qResult) );
-    PRINT(dXYZ.norm());
+    //PRINT(dXYZ.norm());
     iter++;
   }
-
-  //ECHO("END GoToXYZ");
+  
+  mRobot->update();
   return iter < mMaxIter;
 }
 
 VectorXd JointMover::GetXYZ( VectorXd _q ) {
   // Get current XYZ position
-  mWorld.getRobot(mRobotId)->setConfig(mLinks, _q);
-  mWorld.getRobot(mRobotId)->update();
+  mRobot->setConfig(mLinks, _q);
+  mRobot->update();
   
   MatrixXd qTransform = mEENode->getWorldTransform();
   VectorXd qXYZ(3); qXYZ << qTransform(0,3), qTransform(1,3), qTransform(2,3);

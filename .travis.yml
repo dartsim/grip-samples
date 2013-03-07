@@ -1,0 +1,13 @@
+language: cpp
+compiler:
+  - gcc
+before_install:
+  - cd ..
+  - git clone git://github.com/${TRAVIS_REPO_SLUG/grip-samples/dart}.git
+  - (cd dart; ci/before_install.sh ; cmake .; make && sudo make install)
+  - sudo apt-get install libwxgtk2.8-dev
+  - git clone git://github.com/${TRAVIS_REPO_SLUG/grip-samples/grip}.git
+  - (cd grip; cmake .; make && sudo make install)
+  - cd grip-samples
+before_script: cmake .
+script: make
