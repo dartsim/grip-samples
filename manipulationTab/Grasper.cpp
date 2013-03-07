@@ -104,11 +104,23 @@ namespace planning {
         }
         path.push_back(robot->getConfig(totalDofs));
         ECHO("Note: Added closed hand config to path!");
-        //PRINT(robot->getConfig(totalDofs));
+        
         //move grasped object around
         list<VectorXd> targetPoints; 
-        VectorXd v(3); v << 0.33,-0.10, 1.0; targetPoints.push_back(v);
-        VectorXd w(3); w << 0.33,-0.16, 1.0; targetPoints.push_back(w);
+        
+        //Note: Use this target points for all objects except for the life saver and the driving wheel 
+        VectorXd v(3); v << 0.33,-0.10, 1.0; 
+        VectorXd w(3); w << 0.33,-0.16, 1.0; 
+        
+        //For life saver
+        //VectorXd v(3); v << 0.33, -0.27, 1.0;
+        //VectorXd w(3); w << 0.33, -0.16, 1.2;
+        
+        //For driving wheel
+        //VectorXd v(3); v << 0.30, 0.04, 0.7;
+        
+        targetPoints.push_back(v);
+        targetPoints.push_back(w);
         VectorXd backPose(6);
         list<VectorXd> path_back;
         // move to as many target points as wished and store paths
@@ -221,7 +233,7 @@ namespace planning {
                     
                     // check for collision and set as colliding if so; set corresponding 
                     // link collision status to true or false; disregard for thumb
-                    // QUICK FIX for thumb bug: don't check for collision initially
+                    // QUICK FIX for thumb bug: don't check for collision initially || (link >= 6 && link < 9)
                     if(link > 11){
                         colliding_link[link] = moveLinkWithCollisionChecking(step, jointDirections[link], j, target, resulting_contacts, false);
                     }
@@ -296,7 +308,7 @@ namespace planning {
     
     /// Check how many of the links are colliding with target node
     int Grasper::checkHandCollisionCount(){
-        vector<ContactPoint> contacts(50);
+        vector<ContactPoint> contacts(10);
         int count = 0;
         CollisionSkeletonNode* other = world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(objectNode);
         for(list<kinematics::Joint*>::iterator loc = joints.begin(); loc != joints.end(); loc++){
