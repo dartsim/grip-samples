@@ -366,10 +366,10 @@ void manipulationTab::GRIPStateChange() {
     }
 }
 
-/// Render grasp' markers such as grasping point and GCP(later)
+/// Render grasp' markers such as grasping point
 void manipulationTab::GRIPEventRender() {
     mGroundIndex = 0;
-    //draw graspPoint resulting
+    //draw graspPoint resulting from offline grasp planning
     if(checkShowCollMesh->IsChecked() && mWorld && grasper){        
         //draw RED axes around graspPoint originally calculated
         drawAxes(grasper->getGraspingPoint(), 0.08, make_tuple(1.0, 0.0, 0.0));

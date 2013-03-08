@@ -62,6 +62,7 @@ namespace planning {
         world = w;
         robot = r;
         EEName = mEEName;
+        gcpVirtualLoc << 0.004047, 0.0128156, -0.07162959;
     }
     
     Grasper::~Grasper() {
@@ -176,6 +177,14 @@ namespace planning {
                 }    
             }
         }
+        
+        //offset grasping point by virtual grasp center point (GCP) in robot's end effector
+        Eigen::Matrix4d effTrans = robot->getNode(EEName.c_str())->getLocalInvTransform();
+        VectorXd prod(4); prod << gcpVirtualLoc, 1;
+        prod = effTrans * prod;
+        VectorXd temp(3); temp << prod(0), prod(1), prod(2);
+        closest = closest - temp;
+        
         return min_distance;
     }
     

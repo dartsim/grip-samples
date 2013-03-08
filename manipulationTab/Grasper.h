@@ -91,6 +91,7 @@ namespace planning {
         kinematics::BodyNode* objectNode;
         std::string EEName;
         Eigen::Vector3d graspPoint;
+        Eigen::Vector3d gcpVirtualLoc;
         
     private:
         void populateEndEffIds(int fingers, list<kinematics::Joint*> &joints, vector<int> &jointDirections);
