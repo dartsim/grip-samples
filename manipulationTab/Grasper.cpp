@@ -56,9 +56,6 @@ using namespace Eigen;
 using namespace robotics;
 using namespace collision_checking;
 
-//Marker for OpenGL drawing
-Vector3d graspPoint;
-
 namespace planning {
     
     Grasper::Grasper(World* w, robotics::Robot* r, string mEEName) {
@@ -84,7 +81,7 @@ namespace planning {
     /// Attempt a grasp at a target object
     void Grasper::plan(list<VectorXd> &path, vector<int> &totalDofs) {
         //find closest point in target object; grasp target point
-        int min = findClosestGraspingPoint(graspPoint); 
+        int min = findClosestGraspingPoint(graspPoint, objectNode); 
         VectorXd goalPose(6);
         
         //perform translation Jacobian towards grasping point computed
@@ -141,12 +138,13 @@ namespace planning {
         
         //reset robot to start configuration
         robot->setConfig(dofs, startConfig);
+        ECHO("HERE");
     }
     
     /// Find closest point in target object to be grasped
-    double Grasper::findClosestGraspingPoint(Vector3d &closest){
+    double Grasper::findClosestGraspingPoint(Vector3d &closest, kinematics::BodyNode* object){
         //1. get collision meshes and vertices
-    	kinematics::ShapeMesh* shapeMesh = dynamic_cast<kinematics::ShapeMesh *>(objectNode->getCollisionShape());
+    	kinematics::ShapeMesh* shapeMesh = dynamic_cast<kinematics::ShapeMesh *>(object->getCollisionShape());
 
     	if(!shapeMesh) {
     		return -1;
@@ -157,7 +155,7 @@ namespace planning {
          
         if(sc != NULL){
             const aiNode* nd = sc->mRootNode;
-            Matrix4d worldTrans = objectNode->getWorldTransform();
+            Matrix4d worldTrans = object->getWorldTransform();
             const struct aiMesh* mesh = sc->mMeshes[nd->mMeshes[0]];
            
             //2. find closest vertex
@@ -313,5 +311,10 @@ namespace planning {
             count += (world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(j->getChildNode())->checkCollision(other, &contacts, contacts.size()) > 0);
         }
         return count;
+    }
+    
+    /// Get current grasping point
+    Eigen::Vector3d Grasper::getGraspingPoint(){
+        return graspPoint;
     }
 }

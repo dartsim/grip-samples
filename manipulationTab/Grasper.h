@@ -59,9 +59,6 @@ namespace robotics {
     class World;
 }
 
-//Markers for OpenGL Drawing
-extern Eigen::Vector3d graspPoint;
-
 namespace planning {
 
     class Grasper {
@@ -73,13 +70,13 @@ namespace planning {
         
         void init(std::vector<int> &dofs, Eigen::VectorXd &start, kinematics::BodyNode* objectNode);
         void plan(std::list<Eigen::VectorXd> &path, std::vector<int> &dofs);
-        double findClosestGraspingPoint(Eigen::Vector3d &closest);
+        double findClosestGraspingPoint(Eigen::Vector3d &closest, kinematics::BodyNode* object);
         vector<collision_checking::ContactPoint> closeHandPositionBased(double stepSize, kinematics::BodyNode* target);
         void openHand();
         std::vector<int> getHandDofs();
         void printVectorContents(std::vector<int> v);
         int checkHandCollisionCount();
-        
+        Eigen::Vector3d getGraspingPoint();
     protected:
         robotics::World* world;
         planning::RRT* rrt;
@@ -93,6 +90,7 @@ namespace planning {
         Eigen::VectorXd objectConfig;
         kinematics::BodyNode* objectNode;
         std::string EEName;
+        Eigen::Vector3d graspPoint;
         
     private:
         void populateEndEffIds(int fingers, list<kinematics::Joint*> &joints, vector<int> &jointDirections);

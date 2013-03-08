@@ -70,8 +70,9 @@ public:
   void onCheckShowCollMesh(wxCommandEvent &evt);
   
   void grasp();
-  void drawAxes(Eigen::VectorXd origin, double size);
-  void drawAxesWithOrientation(const Eigen::Matrix4d& transformation, double s);
+  void retryGrasp();
+  void drawAxes(Eigen::VectorXd origin, double size, tuple<double,double,double> color);
+  void drawAxesWithOrientation(const Eigen::Matrix4d& transformation, double size, tuple<double,double,double> color);
   
   planning::Controller* mController;
   planning::Grasper* grasper;
@@ -86,6 +87,7 @@ public:
   int mGroundIndex;
   bool mAlreadyFixed;
   std::string palmEName;  
+  Vector3d currentGraspPoint;
   
   DECLARE_DYNAMIC_CLASS(manipulationTab)
   DECLARE_EVENT_TABLE()
