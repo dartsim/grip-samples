@@ -72,11 +72,11 @@ namespace planning {
     /// Finish initialization of grasper by providing end effector's links ids, start configuration and target object
     void Grasper::init(std::vector<int>& d, Eigen::VectorXd& start, kinematics::BodyNode* node){
         dofs = d; 
-        startConfig = start;
         objectNode = node;
+        this->setStartConfig(start);
         
         //initialize JointMover with end effector and arm's DoFs
-        jm = new JointMover(*world, robot, dofs, EEName, 0.01);
+        jm = new JointMover(*world, robot, dofs, EEName, 0.02);
     }
     
     /// Attempt a grasp at a target object
@@ -188,28 +188,6 @@ namespace planning {
         return min_distance;
     }
     
-    /// Method creates a list of joints and a vector with their respective directions-robot dependent-; populates the hand_dofs vector
-    void Grasper::populateEndEffIds(int fingers, list<kinematics::Joint*> &js, vector<int> &jointDirections){
-        hand_dofs.clear();
-        for (int i = 0; i < fingers; i++) {
-            //populate list of end-effector joints
-            kinematics::Joint* fingerJoint = robot->getNode(EEName.c_str())->getChildJoint(i);
-            js.push_back(fingerJoint);
-            js.push_back(fingerJoint->getChildNode()->getChildJoint(0));
-            js.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getChildNode()->getChildJoint(0));
-
-            //populate list of joint directions; finger joint grows - ,while distal and medial grow +
-            jointDirections.push_back(-1);
-            jointDirections.push_back(1);
-            jointDirections.push_back(1);
-
-            //populate end-effector's DoF vector
-            hand_dofs.push_back(fingerJoint->getDof(0)->getSkelIndex());
-            hand_dofs.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getDof(0)->getSkelIndex());
-            hand_dofs.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getChildNode()->getChildJoint(0)->getDof(0)->getSkelIndex());
-        }
-    }
-    
     /// Modifications of idea provided by Asfour et. al. GraspRRT on Robotics and Automation Magazine, 2012
     vector<ContactPoint> Grasper::closeHandPositionBased(double step, kinematics::BodyNode* target) {
         
@@ -273,12 +251,6 @@ namespace planning {
         }
     }
     
-    /// Return the list of skeleton indices for the hand
-    std::vector<int> Grasper::getHandDofs(){
-        assert(hand_dofs.size() > 0);
-        return hand_dofs;
-    }
-    
     /// Increase a joint value with collision checking
     bool Grasper::moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, vector<ContactPoint> contacts, bool checkCollisions){
         bool ret = true;
@@ -325,5 +297,38 @@ namespace planning {
     /// Get current grasping point
     Eigen::Vector3d Grasper::getGraspingPoint(){
         return graspPoint;
+    }
+    
+    /// Return the list of skeleton indices for the hand
+    std::vector<int> Grasper::getHandDofs(){
+        assert(hand_dofs.size() > 0);
+        return hand_dofs;
+    }
+    
+    /// Set start config for grasper planner
+    void Grasper::setStartConfig(Eigen::VectorXd& start){
+        startConfig = start;
+    }
+    
+    /// Method creates a list of joints and a vector with their respective directions-robot dependent-; populates the hand_dofs vector
+    void Grasper::populateEndEffIds(int fingers, list<kinematics::Joint*> &js, vector<int> &jointDirections){
+        hand_dofs.clear();
+        for (int i = 0; i < fingers; i++) {
+            //populate list of end-effector joints
+            kinematics::Joint* fingerJoint = robot->getNode(EEName.c_str())->getChildJoint(i);
+            js.push_back(fingerJoint);
+            js.push_back(fingerJoint->getChildNode()->getChildJoint(0));
+            js.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getChildNode()->getChildJoint(0));
+
+            //populate list of joint directions; finger joint grows - ,while distal and medial grow +
+            jointDirections.push_back(-1);
+            jointDirections.push_back(1);
+            jointDirections.push_back(1);
+
+            //populate end-effector's DoF vector
+            hand_dofs.push_back(fingerJoint->getDof(0)->getSkelIndex());
+            hand_dofs.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getDof(0)->getSkelIndex());
+            hand_dofs.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getChildNode()->getChildJoint(0)->getDof(0)->getSkelIndex());
+        }
     }
 }

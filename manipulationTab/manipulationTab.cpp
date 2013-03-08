@@ -294,9 +294,9 @@ void manipulationTab::retryGrasp(){
     mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
     mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
     
-    // Setup grasper 
+    // Setup grasper by updating startConfig to be current robot's config
     VectorXd currentConfig = mRobot->getConfig(mArmDofs);
-    grasper->init(mArmDofs, currentConfig, selectedNode);
+    grasper->setStartConfig(currentConfig);
    
     // Perform grasp planning; now really it's just Jacobian translation
     std::list<Eigen::VectorXd> path;

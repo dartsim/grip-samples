@@ -77,6 +77,8 @@ namespace planning {
         void printVectorContents(std::vector<int> v);
         int checkHandCollisionCount();
         Eigen::Vector3d getGraspingPoint();
+        void setStartConfig(Eigen::VectorXd& start);
+        
     protected:
         robotics::World* world;
         planning::RRT* rrt;
