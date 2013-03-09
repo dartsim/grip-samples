@@ -85,7 +85,7 @@ public:
   Eigen::VectorXd mPredefStartConf;
   Eigen::VectorXd fixedGrasp;
   int mGroundIndex;
-  bool mAlreadyFixed;
+  bool mAlreadyReplan;
   std::string palmEName;  
   Vector3d currentGraspPoint;
   

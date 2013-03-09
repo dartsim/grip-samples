@@ -70,13 +70,13 @@ namespace planning {
     }
     
     /// Finish initialization of grasper by providing end effector's links ids, start configuration and target object
-    void Grasper::init(std::vector<int>& d, Eigen::VectorXd& start, kinematics::BodyNode* node){
+    void Grasper::init(std::vector<int>& d, Eigen::VectorXd& start, kinematics::BodyNode* node, double step){
         dofs = d; 
         objectNode = node;
         this->setStartConfig(start);
         
         //initialize JointMover with end effector and arm's DoFs
-        jm = new JointMover(*world, robot, dofs, EEName, 0.02);
+        jm = new JointMover(*world, robot, dofs, EEName, step);
     }
     
     /// Attempt a grasp at a target object
@@ -84,14 +84,14 @@ namespace planning {
         //find closest point in target object; grasp target point
         int min = findClosestGraspingPoint(graspPoint, objectNode); 
         VectorXd goalPose(6);
-        
+       
         //perform translation Jacobian towards grasping point computed
         jm->GoToXYZ(startConfig, graspPoint, goalPose, path);
         
-        //try to close hand; 
+        //try to close hand;
         totalDofs = dofs;
         closeHandPositionBased(0.1, objectNode);
-        
+ 
         //merge DOFS
         totalDofs.insert(totalDofs.end(), hand_dofs.begin(), hand_dofs.end());
         //increase size of every vector in path
@@ -119,12 +119,17 @@ namespace planning {
         
         targetPoints.push_back(v);
         targetPoints.push_back(w);
+       
         VectorXd backPose(6);
         list<VectorXd> path_back;
+       
         // move to as many target points as wished and store paths
         for(list<VectorXd>::iterator loc = targetPoints.begin(); loc != targetPoints.end(); loc++){
             VectorXd & t(*loc);
+            path_back.clear();
+           
             jm->GoToXYZ(robot->getConfig(dofs), t, backPose, path_back);
+            
             for(list<VectorXd>::iterator it = path_back.begin(); it != path_back.end(); it++){
                     VectorXd & v (*it);
                     v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) = robot->getConfig(hand_dofs);
@@ -139,7 +144,9 @@ namespace planning {
         
         //reset robot to start configuration
         robot->setConfig(dofs, startConfig);
-        ECHO("HERE");
+        
+        //clear joint mover
+        delete jm;
     }
     
     /// Find closest point in target object to be grasped
@@ -312,7 +319,12 @@ namespace planning {
     
     /// Method creates a list of joints and a vector with their respective directions-robot dependent-; populates the hand_dofs vector
     void Grasper::populateEndEffIds(int fingers, list<kinematics::Joint*> &js, vector<int> &jointDirections){
-        hand_dofs.clear();
+        //Clear if already has been called
+        if(hand_dofs.size()){
+            hand_dofs.clear();
+            js.clear();
+            jointDirections.clear();
+        }
         for (int i = 0; i < fingers; i++) {
             //populate list of end-effector joints
             kinematics::Joint* fingerJoint = robot->getNode(EEName.c_str())->getChildJoint(i);

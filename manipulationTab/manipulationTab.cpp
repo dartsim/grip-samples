@@ -120,7 +120,7 @@ GRIPTab(parent, id, pos, size, style) {
     SetSizer(sizerFull);
 
     // Additional settings
-    mAlreadyFixed = false;
+    mAlreadyReplan = false;
     mPredefStartConf.resize(6);
     mPredefStartConf << -0.858702, -0.674395, 0.0, -0.337896, 0.0, 0.0;
     mController = NULL;
@@ -260,9 +260,9 @@ void manipulationTab::grasp() {
     // Create controller
     mController = new planning::Controller(mRobot, actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
    
-    // Setup grasper
-    grasper->init(mArmDofs, mStartConf, selectedNode);
-   
+    // Setup grasper with a step = 0.02 mainly for JointMover
+    grasper->init(mArmDofs, mStartConf, selectedNode, 0.02);
+    
     // Perform grasp planning; now really it's just Jacobian translation
     std::list<Eigen::VectorXd> path;
     std::vector<int> mTotalDofs;
@@ -270,6 +270,7 @@ void manipulationTab::grasp() {
     
     // CHECK
     PRINT(path.size());
+    mRobot->update();
     
     // Create trajectory; no need to shorten path here
     const Eigen::VectorXd maxVelocity = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
@@ -294,31 +295,32 @@ void manipulationTab::retryGrasp(){
     mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
     mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
     
-    // Setup grasper by updating startConfig to be current robot's config
+    // Setup grasper by updating startConfig to be current robot's config and a smaller step
     VectorXd currentConfig = mRobot->getConfig(mArmDofs);
-    grasper->setStartConfig(currentConfig);
-   
+    grasper->init(mArmDofs, currentConfig, selectedNode, 0.04);
+    
     // Perform grasp planning; now really it's just Jacobian translation
     std::list<Eigen::VectorXd> path;
     std::vector<int> mTotalDofs;
     grasper->plan(path, mTotalDofs);
     
     // CHECK
-    PRINT(path.size());
-    
+    cout << "\tReplanned Path Size: " << path.size()<< endl;
+    mRobot->update();
+     
     // Create trajectory; no need to shorten path here
     const Eigen::VectorXd maxVelocity = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
     const Eigen::VectorXd maxAcceleration = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
     planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
     
-    std::cout << "-- Trajectory duration: " << trajectory->getDuration() << endl;
+    cout << "\tReplanned Trajectory Duration: " << trajectory->getDuration() << endl;
     mController->setTrajectory(trajectory, 0, mTotalDofs);
     
     // Reactivate collision of feet with floor Body_LAR Body_RAR
     mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
     mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
 
-    printf("Controller time: %f \n", mWorld->mTime);
+    printf("\tReplanned Controller Time: %f \n", mWorld->mTime);
 }
 
 /// Before each simulation step we set the torques the controller applies to the joints
@@ -327,15 +329,6 @@ void manipulationTab::GRIPEventSimulationBeforeTimestep() {
     // section here to control the fingers for force-based grasping
     // instead of position-based grasping
     mRobot->setInternalForces(positionTorques);
-    
-    //check object position and replan
-    grasper->findClosestGraspingPoint(currentGraspPoint, selectedNode);
-    Vector3d diff = currentGraspPoint - grasper->getGraspingPoint();
-    
-    if(diff.norm() >= 0.009){
-        ECHO("Note: Re-planning grasp!");
-        this->retryGrasp();
-    }
 }
 
 /// Handle simulation events after timestep

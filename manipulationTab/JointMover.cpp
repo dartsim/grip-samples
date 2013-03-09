@@ -66,8 +66,8 @@ JointMover::JointMover( robotics::World &_world, robotics::Robot* robot, const s
   : mConfigStep(_configStep), mWorld(_world), mRobot(robot) {
 
   mLinks = _links;
-  mMaxIter = 200;
-  mWorkspaceThresh = 0.006;
+  mMaxIter = 100;
+  mWorkspaceThresh = _configStep;
   mEENode = (dynamics::BodyNodeDynamics*)mRobot->getNode(_EEName.c_str());
 }
 
@@ -77,7 +77,7 @@ MatrixXd JointMover::GetPseudoInvJac() {
   MatrixXd JaclinT = Jaclin.transpose();
   MatrixXd JJt = (Jaclin*JaclinT);
   FullPivLU<MatrixXd> lu(JJt);
-
+  
   return JaclinT*( lu.inverse() );;
 }
 
@@ -86,14 +86,13 @@ VectorXd JointMover::OneStepTowardsXYZ( VectorXd _q, VectorXd _targetXYZ) {
   assert(_q.size() > 3);
   VectorXd dXYZ = _targetXYZ - GetXYZ(_q); // GetXYZ also updates the config to _q, so Jaclin use an updated value
   VectorXd dConfig = GetPseudoInvJac()*dXYZ;
-  
-  
+
   double alpha = min((mConfigStep/dConfig.norm()), 1.0); // Constant to not let vector to be larger than mConfigStep
   dConfig = alpha*dConfig;
   return _q + dConfig;
 }
 
-bool JointMover::GoToXYZ( VectorXd _qStart, VectorXd _targetXYZ, VectorXd &_qResult,  std::list<Eigen::VectorXd> &path) {
+bool JointMover::GoToXYZ( VectorXd _qStart, VectorXd _targetXYZ, VectorXd &_qResult, std::list<Eigen::VectorXd> &path) {
   _qResult = _qStart;
   mRobot->update();
   VectorXd dXYZ = _targetXYZ - GetXYZ(_qResult); // GetXYZ also updates the config to _qResult, so Jaclin use an updated value
@@ -101,7 +100,7 @@ bool JointMover::GoToXYZ( VectorXd _qStart, VectorXd _targetXYZ, VectorXd &_qRes
   while( dXYZ.norm() > mWorkspaceThresh && iter < mMaxIter ) {
     _qResult = OneStepTowardsXYZ(_qResult, _targetXYZ);
     path.push_back(_qResult);
-    
+    mRobot->update();
     dXYZ = (_targetXYZ - GetXYZ(_qResult) );
     //PRINT(dXYZ.norm());
     iter++;

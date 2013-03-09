@@ -68,7 +68,7 @@ namespace planning {
         Grasper(robotics::World* world, robotics::Robot* r, std::string mEEName);
         virtual ~Grasper();
         
-        void init(std::vector<int> &dofs, Eigen::VectorXd &start, kinematics::BodyNode* objectNode);
+        void init(std::vector<int> &dofs, Eigen::VectorXd &start, kinematics::BodyNode* objectNode, double step);
         void plan(std::list<Eigen::VectorXd> &path, std::vector<int> &dofs);
         double findClosestGraspingPoint(Eigen::Vector3d &closest, kinematics::BodyNode* object);
         vector<collision_checking::ContactPoint> closeHandPositionBased(double stepSize, kinematics::BodyNode* target);

@@ -75,10 +75,10 @@ class JointMover {
     
   public:
     JointMover( robotics::World &_world, robotics::Robot* robot, const std::vector<int> &_links,  std::string _EEName,
-        double _configStep = 0.1 );
+        double _configStep);
     MatrixXd GetPseudoInvJac();
     
-    bool GoToXYZ( VectorXd _qStart, VectorXd _targetXYZ, VectorXd &_qResult,  std::list<Eigen::VectorXd> &path );
+    bool GoToXYZ( VectorXd _qStart, VectorXd _targetXYZ, VectorXd &_qResult, std::list<Eigen::VectorXd> &path );
 
     VectorXd OneStepTowardsXYZ( VectorXd _q, VectorXd _targetXYZ);
 
