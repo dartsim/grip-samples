@@ -84,9 +84,8 @@ public:
   Eigen::VectorXd mStartConf;
   Eigen::VectorXd mPredefStartConf;
   Eigen::VectorXd fixedGrasp;
-  int mGroundIndex;
   bool mAlreadyReplan;
-  std::string palmEName;  
+  std::string eeName;  
   Vector3d currentGraspPoint;
   
   DECLARE_DYNAMIC_CLASS(manipulationTab)

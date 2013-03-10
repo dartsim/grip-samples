@@ -67,7 +67,7 @@ JointMover::JointMover( robotics::World &_world, robotics::Robot* robot, const s
 
   mLinks = _links;
   mMaxIter = 100;
-  mWorkspaceThresh = _configStep;
+  mWorkspaceThresh = 0.02;
   mEENode = (dynamics::BodyNodeDynamics*)mRobot->getNode(_EEName.c_str());
 }
 

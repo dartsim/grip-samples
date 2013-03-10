@@ -49,6 +49,7 @@
 #include <Eigen/Core>
 #include <flann/flann.hpp>
 #include <planning/RRT.h>
+#include <planning/PathShortener.h>
 #include <kinematics/ShapeBox.h>
 #include <kinematics/Dof.h>
 #include <kinematics/Joint.h>
@@ -68,8 +69,8 @@ namespace planning {
         Grasper(robotics::World* world, robotics::Robot* r, std::string mEEName);
         virtual ~Grasper();
         
-        void init(std::vector<int> &dofs, Eigen::VectorXd &start, kinematics::BodyNode* objectNode, double step);
-        void plan(std::list<Eigen::VectorXd> &path, std::vector<int> &dofs);
+        void init(std::vector<int> dofs, Eigen::VectorXd start, kinematics::BodyNode* objectNode, double step);
+        void plan(std::list<Eigen::VectorXd> &path, std::vector<int> &totaldofs);
         double findClosestGraspingPoint(Eigen::Vector3d &closest, kinematics::BodyNode* object);
         vector<collision_checking::ContactPoint> closeHandPositionBased(double stepSize, kinematics::BodyNode* target);
         void openHand();
@@ -77,12 +78,14 @@ namespace planning {
         void printVectorContents(std::vector<int> v);
         int checkHandCollisionCount();
         Eigen::Vector3d getGraspingPoint();
-        void setStartConfig(Eigen::VectorXd& start);
+        Eigen::Vector3d getGCPXYZ();
+        Eigen::Matrix4d getGCPTransform();
+        void setStartConfig(Eigen::VectorXd start);
         
     protected:
         robotics::World* world;
-        planning::RRT* rrt;
         JointMover* jm;
+        planning::PathShortener* shortener;
         
         robotics::Robot* robot;
         std::vector<int> dofs;

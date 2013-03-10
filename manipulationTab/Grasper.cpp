@@ -49,6 +49,7 @@
 #include <set>
 #include <dart/dynamics/ContactDynamics.h>
 #include <dart/collision/CollisionSkeleton.h>
+#include <planning/PathShortener.h>
 #include "manipulationTab.h"
 
 using namespace std;
@@ -67,13 +68,17 @@ namespace planning {
     
     Grasper::~Grasper() {
         delete jm;
+        delete shortener;
     }
     
     /// Finish initialization of grasper by providing end effector's links ids, start configuration and target object
-    void Grasper::init(std::vector<int>& d, Eigen::VectorXd& start, kinematics::BodyNode* node, double step){
+    void Grasper::init(std::vector<int> d, Eigen::VectorXd start, kinematics::BodyNode* node, double step){
         dofs = d; 
         objectNode = node;
         this->setStartConfig(start);
+        
+        //initialize path shortener
+        shortener = new planning::PathShortener(world, 0, dofs);
         
         //initialize JointMover with end effector and arm's DoFs
         jm = new JointMover(*world, robot, dofs, EEName, step);
@@ -82,22 +87,27 @@ namespace planning {
     /// Attempt a grasp at a target object
     void Grasper::plan(list<VectorXd> &path, vector<int> &totalDofs) {
         //find closest point in target object; grasp target point
-        int min = findClosestGraspingPoint(graspPoint, objectNode); 
-        VectorXd goalPose(6);
-       
+        int min = findClosestGraspingPoint(graspPoint, objectNode);
+        
         //perform translation Jacobian towards grasping point computed
+        VectorXd goalPose(6);
         jm->GoToXYZ(startConfig, graspPoint, goalPose, path);
+        
+        //shorten path
+        shortener->shortenPath(path);
         
         //try to close hand;
         totalDofs = dofs;
         closeHandPositionBased(0.1, objectNode);
  
-        //merge DOFS
+        //merge DoFs to include hand closure configs in path
         totalDofs.insert(totalDofs.end(), hand_dofs.begin(), hand_dofs.end());
+        
         //increase size of every vector in path
         for(list<VectorXd>::iterator it = path.begin(); it != path.end(); it++){
             VectorXd & v (*it);
-            v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) = VectorXd::Zero(hand_dofs.size(), 1);
+            v.conservativeResize(totalDofs.size()); 
+            v.segment(dofs.size(),hand_dofs.size()) = VectorXd::Zero(hand_dofs.size(), 1);
         }
         path.push_back(robot->getConfig(totalDofs));
         ECHO("Note: Added closed hand config to path!");
@@ -105,7 +115,7 @@ namespace planning {
         //move grasped object around
         list<VectorXd> targetPoints; 
         
-        //Note: Use this target points for all objects except for the life saver and the driving wheel 
+        //For all objects except for the life saver and the driving wheel 
         VectorXd v(3); v << 0.33,-0.10, 1.0; 
         VectorXd w(3); w << 0.33,-0.16, 1.0; 
         
@@ -129,10 +139,11 @@ namespace planning {
             path_back.clear();
            
             jm->GoToXYZ(robot->getConfig(dofs), t, backPose, path_back);
-            
+            shortener->shortenPath(path_back);
             for(list<VectorXd>::iterator it = path_back.begin(); it != path_back.end(); it++){
                     VectorXd & v (*it);
-                    v.conservativeResize(totalDofs.size()); v.segment(dofs.size(),hand_dofs.size()) = robot->getConfig(hand_dofs);
+                    v.conservativeResize(totalDofs.size()); 
+                    v.segment(dofs.size(),hand_dofs.size()) = robot->getConfig(hand_dofs);
 
                     //merge lists
                     path.push_back(v);
@@ -144,9 +155,6 @@ namespace planning {
         
         //reset robot to start configuration
         robot->setConfig(dofs, startConfig);
-        
-        //clear joint mover
-        delete jm;
     }
     
     /// Find closest point in target object to be grasped
@@ -312,8 +320,25 @@ namespace planning {
         return hand_dofs;
     }
     
+    /// Return the GCP virtual location in the end-effector (in world's coordinates)
+    Eigen::Vector3d Grasper::getGCPXYZ(){
+        Eigen::Matrix4d transformation = robot->getNode(EEName.c_str())->getWorldTransform();
+        Vector4d res; res << gcpVirtualLoc, 1;
+        res = transformation*res;
+        Vector3d ret; ret << res(0), res(1), res(2);
+        return ret;
+    }
+    
+    /// Return the virtual GCP transform; mainly for drawing
+    Eigen::Matrix4d Grasper::getGCPTransform(){
+        Matrix4d trans = MatrixXd::Identity(4,4);
+        trans.block(0,3,3,1) = this->getGCPXYZ();
+        
+        return trans;
+    }
+    
     /// Set start config for grasper planner
-    void Grasper::setStartConfig(Eigen::VectorXd& start){
+    void Grasper::setStartConfig(Eigen::VectorXd start){
         startConfig = start;
     }
     

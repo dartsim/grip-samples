@@ -152,9 +152,9 @@ void manipulationTab::GRIPEventSceneLoaded() {
     }
 
     //Define palm effector name; Note: this is robot dependent!
-    palmEName = "Body_RWP";
+    eeName = "Body_RWP";
     // Initialize Grasper; done here in order to allow Close and Open Hand buttons!
-    grasper = new planning::Grasper(mWorld, mRobot, palmEName);
+    grasper = new planning::Grasper(mWorld, mRobot, eeName);
 }
 
 /// Handle event for drawing grasp markers
@@ -202,7 +202,7 @@ void manipulationTab::onButtonDoGrasping(wxCommandEvent& evt){
 
 /// Close robot's end effector
 void manipulationTab::onButtonOpenHand(wxCommandEvent& evt) {
-    if (grasper != NULL && palmEName.size()) {
+    if (grasper != NULL && eeName.size()) {
         grasper->openHand();
         viewer->DrawGLScene();
     } else {
@@ -212,7 +212,7 @@ void manipulationTab::onButtonOpenHand(wxCommandEvent& evt) {
 
 /// Open robot's end effector
 void manipulationTab::onButtonCloseHand(wxCommandEvent& evt) {
-    if (grasper != NULL && palmEName.size()) {
+    if (grasper != NULL && eeName.size()) {
         grasper->closeHandPositionBased(0.1, selectedNode);
         viewer->DrawGLScene();
     } else {
@@ -229,7 +229,7 @@ void manipulationTab::grasp() {
         delete mController;
         delete grasper;
         //re-init grasper
-        grasper = new planning::Grasper(mWorld, mRobot, palmEName);
+        grasper = new planning::Grasper(mWorld, mRobot, eeName);
     } 
     // Store the actuated joints (all except the first 6 which are only a convenience to locate the robot in the world)
     std::vector<int> actuatedDofs(mRobot->getNumDofs() - 6);
@@ -269,7 +269,7 @@ void manipulationTab::grasp() {
     grasper->plan(path, mTotalDofs);
     
     // CHECK
-    PRINT(path.size());
+    cout << "Offline Plan Size: " << path.size() << endl;
     mRobot->update();
     
     // Create trajectory; no need to shorten path here
@@ -277,7 +277,7 @@ void manipulationTab::grasp() {
     const Eigen::VectorXd maxAcceleration = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
     planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
     
-    std::cout << "-- Trajectory duration: " << trajectory->getDuration() << endl;
+    std::cout << "Trajectory duration: " << trajectory->getDuration() << endl;
     mController->setTrajectory(trajectory, 0, mTotalDofs);
     
     // Reactivate collision of feet with floor Body_LAR Body_RAR
@@ -295,9 +295,8 @@ void manipulationTab::retryGrasp(){
     mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
     mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
     
-    // Setup grasper by updating startConfig to be current robot's config and a smaller step
-    VectorXd currentConfig = mRobot->getConfig(mArmDofs);
-    grasper->init(mArmDofs, currentConfig, selectedNode, 0.04);
+    // Setup grasper by updating startConfig to be current robot's config
+    grasper->init(mArmDofs, mRobot->getConfig(mArmDofs), selectedNode, 0.02);
     
     // Perform grasp planning; now really it's just Jacobian translation
     std::list<Eigen::VectorXd> path;
@@ -323,12 +322,25 @@ void manipulationTab::retryGrasp(){
     printf("\tReplanned Controller Time: %f \n", mWorld->mTime);
 }
 
-/// Before each simulation step we set the torques the controller applies to the joints
+/// Before each simulation step we set the torques the controller applies to the joints and check for plan's accuracy
 void manipulationTab::GRIPEventSimulationBeforeTimestep() {
     Eigen::VectorXd positionTorques = mController->getTorques(mRobot->getPose(), mRobot->getQDotVector(), mWorld->mTime);
     // section here to control the fingers for force-based grasping
     // instead of position-based grasping
     mRobot->setInternalForces(positionTorques);
+    
+    //check object position and replan only if it hasnt been done already to save computing power
+    if (!mAlreadyReplan) {
+        grasper->findClosestGraspingPoint(currentGraspPoint, selectedNode);
+        Vector3d diff = currentGraspPoint - grasper->getGraspingPoint();
+        
+        // Note: Error bound must be < 0.09 as Jacobian translation fails to reach when it's too close to target
+        if (diff.norm() >= 0.006) {
+            ECHO("\tNote: Re-planning grasp!");
+            this->retryGrasp();
+            mAlreadyReplan = true;
+        }
+    }
 }
 
 /// Handle simulation events after timestep
@@ -361,15 +373,18 @@ void manipulationTab::GRIPStateChange() {
 
 /// Render grasp' markers such as grasping point
 void manipulationTab::GRIPEventRender() {
-    mGroundIndex = 0;
     //draw graspPoint resulting from offline grasp planning
     if(checkShowCollMesh->IsChecked() && mWorld && grasper){        
-        //draw RED axes around graspPoint originally calculated
+        //draw RED axes on graspPoint originally calculated
         drawAxes(grasper->getGraspingPoint(), 0.08, make_tuple(1.0, 0.0, 0.0));
+        
+        //draw BLUE axes on virtual GCP in robot's end-effector
+        drawAxes(grasper->getGCPXYZ(), 0.08, make_tuple(0.0, 0.0, 1.0));
     }
-    //draw current graspPoint
-    if(checkShowCollMesh->IsChecked() && mWorld && currentGraspPoint.size()){
-        //draw GREEN axes around current graspPoint
+    //draw current graspPoint during simulation; note point is updated until 
+    //a new plan is made to save comp. power
+    if(checkShowCollMesh->IsChecked() && mWorld && currentGraspPoint.sum() > 0.1){
+        //draw GREEN axes on current graspPoint
         drawAxes(currentGraspPoint, 0.08, make_tuple(0.0, 1.0, 0.0));
     }
     glFlush();
