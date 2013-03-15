@@ -40,6 +40,7 @@
 #define __SAMPLE_MANIPULATION_TAB__
 
 #include <vector>
+#include <tuple>
 #include <Tabs/GRIPTab.h>
 #include "Grasper.h"
 namespace planning { class Controller; }

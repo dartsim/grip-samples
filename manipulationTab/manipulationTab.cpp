@@ -53,7 +53,7 @@
 #include <kinematics/Joint.h>
 #include <planning/PathPlanner.h>
 #include <planning/PathShortener.h>
-#include <planning/Trajectory.h>
+#include <planning/PathFollowingTrajectory.h>
 #include "Controller.h"
 #include "Grasper.h"
 
@@ -275,7 +275,7 @@ void manipulationTab::grasp() {
     // Create trajectory; no need to shorten path here
     const Eigen::VectorXd maxVelocity = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
     const Eigen::VectorXd maxAcceleration = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
-    planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
+    planning::Trajectory* trajectory = new planning::PathFollowingTrajectory(path, maxVelocity, maxAcceleration);
     
     std::cout << "Trajectory duration: " << trajectory->getDuration() << endl;
     mController->setTrajectory(trajectory, 0, mTotalDofs);
@@ -310,7 +310,7 @@ void manipulationTab::retryGrasp(){
     // Create trajectory; no need to shorten path here
     const Eigen::VectorXd maxVelocity = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
     const Eigen::VectorXd maxAcceleration = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
-    planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
+    planning::Trajectory* trajectory = new planning::PathFollowingTrajectory(path, maxVelocity, maxAcceleration);
     
     cout << "\tReplanned Trajectory Duration: " << trajectory->getDuration() << endl;
     mController->setTrajectory(trajectory, 0, mTotalDofs);

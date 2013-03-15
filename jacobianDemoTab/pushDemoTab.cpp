@@ -65,7 +65,7 @@ using namespace std;
 
 // Planning and controller
 #include <planning/PathPlanner.h>
-#include <planning/Trajectory.h>
+#include <planning/PathFollowingTrajectory.h>
 #include <planning/PathShortener.h>
 #include "Controller.h"
 // **********************
@@ -350,7 +350,7 @@ void pushDemoTab::initSettings() {
 
   const Eigen::VectorXd maxVelocity = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
   const Eigen::VectorXd maxAcceleration = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
-  planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
+  planning::Trajectory* trajectory = new planning::PathFollowingTrajectory(path, maxVelocity, maxAcceleration);
   std::cout << "-- Trajectory duration: " << trajectory->getDuration() << endl;
   //mController->setTrajectory(trajectory, 0.1, trajectoryDofs);
   mController->setTrajectory(trajectory, 0, trajectoryDofs);
