@@ -52,7 +52,7 @@
 #include <robotics/Robot.h>
 #include <planning/PathPlanner.h>
 #include <planning/PathShortener.h>
-#include <planning/Trajectory.h>
+#include <planning/PathFollowingTrajectory.h>
 #include "Controller.h"
 
 using namespace std;
@@ -273,7 +273,7 @@ void planningTab::onButtonPlan(wxCommandEvent & _evt) {
     // Convert path into time-parameterized trajectory satisfying acceleration and velocity constraints
     const Eigen::VectorXd maxVelocity = 0.6 * Eigen::VectorXd::Ones(mArmDofs.size());
     const Eigen::VectorXd maxAcceleration = 0.6 * Eigen::VectorXd::Ones(mArmDofs.size());
-    planning::Trajectory* trajectory = new planning::Trajectory(path, maxVelocity, maxAcceleration);
+    planning::Trajectory* trajectory = new planning::PathFollowingTrajectory(path, maxVelocity, maxAcceleration);
     std::cout << "-- Trajectory duration: " << trajectory->getDuration() << endl;
     mController->setTrajectory(trajectory, 0.0, mArmDofs);
   }
