@@ -76,13 +76,13 @@ class JointMover {
   public:
     JointMover( robotics::World &_world, robotics::Robot* robot, const std::vector<int> &_links,  std::string _EEName,
         double _configStep);
-    MatrixXd GetPseudoInvJac();
+    MatrixXd GetPseudoInvJac(bool both);
     
-    bool GoToXYZ( VectorXd _qStart, VectorXd _targetXYZ, VectorXd &_qResult, std::list<Eigen::VectorXd> &path );
+    bool GoToXYZRPY( VectorXd _qStart, VectorXd _targetXYZ, VectorXd &_qResult, std::list<Eigen::VectorXd> &path );
 
-    VectorXd OneStepTowardsXYZ( VectorXd _q, VectorXd _targetXYZ);
+    VectorXd OneStepTowardsXYZRPY( VectorXd _q, VectorXd _targetXYZ);
 
-    VectorXd GetXYZ( VectorXd _q );
+    VectorXd GetXYZRPY( VectorXd _q , bool both);
     
     double jointSpaceDistance(VectorXd _q1, VectorXd _q2);
     
