@@ -37,9 +37,9 @@
  */
 /**
  * @file JointMover.cpp
- * @brief Jacobian-based planning handling only translations
- * @author Juan C. Garcia in collaboration with Arash Rouhani made minor modifications 
- * to code provided by Ana C. Huaman Quispe 
+ * @brief Jacobian-based planning handling both translations and rotations
+ * @author Juan C. Garcia, Justin Smith in collaboration with Arash Rouhani made modifications 
+ *         to original code provided by Ana C. Huaman Quispe 
  */
 #include <iostream>
 #include <stdlib.h>
@@ -71,60 +71,97 @@ JointMover::JointMover( robotics::World &_world, robotics::Robot* robot, const s
   mEENode = (dynamics::BodyNodeDynamics*)mRobot->getNode(_EEName.c_str());
 }
 
-MatrixXd JointMover::GetPseudoInvJac() {
-   // Precalculate pseduojacobian
+// Method returns either a translational Jacobian, or a full trans+rot Jacobian
+MatrixXd JointMover::GetPseudoInvJac(bool both) {
   MatrixXd Jaclin = mEENode->getJacobianLinear().topRightCorner( 3, mLinks.size());
-  MatrixXd JaclinT = Jaclin.transpose();
-  MatrixXd JJt = (Jaclin*JaclinT);
+  MatrixXd Jac;
+  // handle both translations and rotations
+  if(both) {
+      MatrixXd Jacang = mEENode->getJacobianAngular().topRightCorner(3, mLinks.size());
+      Jac.resize(Jaclin.rows() + Jacang.rows(), Jaclin.cols());
+      Jac << Jaclin, Jacang;
+  }// otherwise, just handle translations
+  else {
+      Jac = Jaclin;
+  }
+  MatrixXd JacT = Jac.transpose();
+  MatrixXd JJt = (Jac*JacT);
   FullPivLU<MatrixXd> lu(JJt);
   
-  return JaclinT*( lu.inverse() );;
+  return JacT*(lu.inverse());
 }
 
-VectorXd JointMover::OneStepTowardsXYZ( VectorXd _q, VectorXd _targetXYZ) {
-  assert(_targetXYZ.size() == 3);
+// Method performs a step towards target; such target could  
+// be a 3D vector (X,Y,Z) or a 6D vector (X,Y,Z,R,P,Y)
+VectorXd JointMover::OneStepTowardsXYZRPY( VectorXd _q, VectorXd _targetXYZRPY) {
+  assert(_targetXYZRPY.size() >= 3);
   assert(_q.size() > 3);
-  VectorXd dXYZ = _targetXYZ - GetXYZ(_q); // GetXYZ also updates the config to _q, so Jaclin use an updated value
-  VectorXd dConfig = GetPseudoInvJac()*dXYZ;
-
-  double alpha = min((mConfigStep/dConfig.norm()), 1.0); // Constant to not let vector to be larger than mConfigStep
+  bool both = (_targetXYZRPY.size() == 6);
+  //GetXYZ also updates the config to _q, so Jaclin use an updated value
+  VectorXd delta = _targetXYZRPY - GetXYZRPY(_q, both); 
+  //if target also specifies roll, pitch and yaw compute entire Jacobian; otherwise, just translational Jacobian
+  VectorXd dConfig = GetPseudoInvJac(both)*delta;
+  
+  // Constant to not let vector to be larger than mConfigStep
+  double alpha = min((mConfigStep/dConfig.norm()), 1.0);
   dConfig = alpha*dConfig;
   return _q + dConfig;
 }
 
-bool JointMover::GoToXYZ( VectorXd _qStart, VectorXd _targetXYZ, VectorXd &_qResult, std::list<Eigen::VectorXd> &path) {
+// Method performs a Jacobian towards specified target; such target could  
+// be a 3D vector (X,Y,Z) or a 6D vector (X,Y,Z,R,P,Y)
+bool JointMover::GoToXYZRPY( VectorXd _qStart, VectorXd _targetXYZRPY, VectorXd &_qResult, std::list<Eigen::VectorXd> &path) {
   _qResult = _qStart;
   mRobot->update();
-  VectorXd dXYZ = _targetXYZ - GetXYZ(_qResult); // GetXYZ also updates the config to _qResult, so Jaclin use an updated value
+  bool both = (_targetXYZRPY.size() == 6);
+  // GetXYZ also updates the config to _qResult, so Jaclin use an updated value
+  VectorXd delta = _targetXYZRPY - GetXYZRPY(_qResult, both); 
+  
   int iter = 0;
-  while( dXYZ.norm() > mWorkspaceThresh && iter < mMaxIter ) {
-    _qResult = OneStepTowardsXYZ(_qResult, _targetXYZ);
+  while( delta.norm() > mWorkspaceThresh && iter < mMaxIter ) {
+    _qResult = OneStepTowardsXYZRPY(_qResult, _targetXYZRPY);
     path.push_back(_qResult);
     mRobot->update();
-    dXYZ = (_targetXYZ - GetXYZ(_qResult) );
-    //PRINT(dXYZ.norm());
+    delta = (_targetXYZRPY - GetXYZRPY(_qResult, both) );
+    //PRINT(delta.norm());
     iter++;
   }
-  
   mRobot->update();
   return iter < mMaxIter;
 }
 
-VectorXd JointMover::GetXYZ( VectorXd _q ) {
+// Method to compute location of given a vector of joint configurations; note the
+// returned vector could be 3D (X,Y,Z) or 6D(X,Y,Z,R,P,Y)
+VectorXd JointMover::GetXYZRPY( VectorXd _q, bool both ) {
   // Get current XYZ position
   mRobot->setConfig(mLinks, _q);
   mRobot->update();
   
   MatrixXd qTransform = mEENode->getWorldTransform();
-  VectorXd qXYZ(3); qXYZ << qTransform(0,3), qTransform(1,3), qTransform(2,3);
-  return qXYZ;
+  VectorXd qXYZRPY;
+  
+  //return a 6D vector if both x,y,z and r,p,y must be computed
+  if(both){
+      Matrix3d rotM = qTransform.topLeftCorner(3,3);
+      VectorXd rot = rotM.eulerAngles(0,1,2);
+      qXYZRPY.resize(6); 
+      qXYZRPY << qTransform(0,3), qTransform(1,3), qTransform(2,3), rot(0), rot(1), rot(2);
+  }
+  else{
+      qXYZRPY.resize(3); 
+      qXYZRPY << qTransform(0,3), qTransform(1,3), qTransform(2,3);
+  }
+  return qXYZRPY;
 }
 
+
+// Method to compute distance between configs in joint space
 double JointMover::jointSpaceDistance(VectorXd _q1, VectorXd _q2) {
   // This is the infinite norm
   return (_q2-_q1).cwiseAbs().maxCoeff();
 }
 
+// Method to achieve simple joints movements
 VectorXd JointMover::jointSpaceMovement(VectorXd _qStart, VectorXd _qGoal) {
   VectorXd diff = (_qGoal-_qStart);
   for(int i = 0; i < diff.size(); i++){

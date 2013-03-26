@@ -91,7 +91,7 @@ namespace planning {
         
         //perform translation Jacobian towards grasping point computed
         VectorXd goalPose(6);
-        jm->GoToXYZ(startConfig, graspPoint, goalPose, path);
+        jm->GoToXYZRPY(startConfig, graspPoint, goalPose, path);
         
         //shorten path
         shortener->shortenPath(path);
@@ -138,7 +138,7 @@ namespace planning {
             VectorXd & t(*loc);
             path_back.clear();
            
-            jm->GoToXYZ(robot->getConfig(dofs), t, backPose, path_back);
+            jm->GoToXYZRPY(robot->getConfig(dofs), t, backPose, path_back);
             shortener->shortenPath(path_back);
             for(list<VectorXd>::iterator it = path_back.begin(); it != path_back.end(); it++){
                     VectorXd & v (*it);
