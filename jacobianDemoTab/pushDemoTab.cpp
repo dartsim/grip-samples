@@ -418,7 +418,7 @@ std::list<Eigen::VectorXd> pushDemoTab::getPath() {
  */
 void pushDemoTab::GRIPEventSimulationBeforeTimestep() {
 
-  mWorld->getRobot(mRobotIndex)->setInternalForces(mController->getTorques(mWorld->getRobot(mRobotIndex)->getPose(), mWorld->getRobot(mRobotIndex)->getQDotVector(), mWorld->mTime));
+  mWorld->getRobot(mRobotIndex)->setInternalForces(mController->getTorques(mWorld->getRobot(mRobotIndex)->getPose(), mWorld->getRobot(mRobotIndex)->getPoseVelocity(), mWorld->mTime));
  
 }
 

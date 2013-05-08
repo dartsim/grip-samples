@@ -324,7 +324,7 @@ void manipulationTab::retryGrasp(){
 
 /// Before each simulation step we set the torques the controller applies to the joints and check for plan's accuracy
 void manipulationTab::GRIPEventSimulationBeforeTimestep() {
-    Eigen::VectorXd positionTorques = mController->getTorques(mRobot->getPose(), mRobot->getQDotVector(), mWorld->mTime);
+    Eigen::VectorXd positionTorques = mController->getTorques(mRobot->getPose(), mRobot->getPoseVelocity(), mWorld->mTime);
     // section here to control the fingers for force-based grasping
     // instead of position-based grasping
     mRobot->setInternalForces(positionTorques);

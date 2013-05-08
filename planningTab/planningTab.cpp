@@ -147,7 +147,7 @@ void planningTab::GRIPEventSceneLoaded() {
 
 /// Before each simulation step we set the torques the controller applies to the joints
 void planningTab::GRIPEventSimulationBeforeTimestep() {
-  Eigen::VectorXd torques = mController->getTorques(mWorld->getRobot(mRobotIndex)->getPose(), mWorld->getRobot(mRobotIndex)->getQDotVector(), mWorld->mTime);
+  Eigen::VectorXd torques = mController->getTorques(mWorld->getRobot(mRobotIndex)->getPose(), mWorld->getRobot(mRobotIndex)->getPoseVelocity(), mWorld->mTime);
   mWorld->getRobot(mRobotIndex)->setInternalForces(torques);
 }
 
