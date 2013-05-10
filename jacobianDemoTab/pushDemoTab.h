@@ -43,6 +43,7 @@
 #include <Tabs/GRIPThread.h>
 #include <Tools/Constants.h>
 #include <list>
+#include <dynamics/SkeletonDynamics.h>
 
 namespace planning { class Controller; }
 
@@ -73,12 +74,13 @@ public:
   static const string mRA_Nodes[];
   int static const mRA_NumNodes = 6;
   int static const mSizePos = 3;
+  vector<int> mArmDofs;
 
   Eigen::VectorXd mStartConf;
   Eigen::VectorXd mGoalPos;
   Eigen::VectorXd mPredefStartConf;
 
-  int mRobotIndex;
+  dynamics::SkeletonDynamics* mRobot;
   int mGroundIndex;
 
   int mCurrentFrame;
@@ -94,6 +96,7 @@ public:
 
   std::list<Eigen::VectorXd> getPath(); 
 
+  virtual void GRIPEventSceneLoaded();
   virtual void GRIPEventSimulationBeforeTimestep(); /**< Implement to apply forces before simulating a dynamic step */
   virtual void GRIPEventSimulationAfterTimestep(); /**< Implement to save world states in simulation*/
   virtual void GRIPEventSimulationStart(); 

@@ -5,7 +5,6 @@
  * @date March 07th, 2012
  */
 
-#include <robotics/Robot.h>
 #include <dynamics/BodyNodeDynamics.h>
 #include <kinematics/TrfmTranslate.h>
 #include <kinematics/Transformation.h>
@@ -28,7 +27,7 @@ JTFollower::JTFollower() {
  * @function JTFollower
  * @brief Constructor
  */
-JTFollower::JTFollower( robotics::World &_world, 
+JTFollower::JTFollower( simulation::World &_world, 
                         bool _copyWorld, 
 			double _configStep ) {
   
@@ -57,18 +56,18 @@ JTFollower::~JTFollower() {
 /**
  * @function init
  */
-void JTFollower::init( int _robotId,
+void JTFollower::init( dynamics::SkeletonDynamics* _robot,
 		       const std::vector<int> &_links,
 		       std::string _EEName,
 		       int _EEId,
 		       double _res ) {
   
-  mRobotId = _robotId;
+  mRobot = _robot;
   mLinks = _links;
   
   mMaxIter = 200;
   mWorkspaceThresh = _res; // An error of half the resolution
-  mEENode = (dynamics::BodyNodeDynamics*) mWorld->getRobot(mRobotId)->getNode( _EEName.c_str() );
+  mEENode = (dynamics::BodyNodeDynamics*) mRobot->getNode( _EEName.c_str() );
   mEEId = _EEId;  
 }
 
@@ -126,7 +125,6 @@ bool JTFollower::GoToXYZ( Eigen::VectorXd &_q,
   Eigen::VectorXd dXYZ;
   Eigen::VectorXd dConfig;
   int iter;
-  mWorld->getRobot(mRobotId)->update();
   
   //-- Initialize
   dXYZ = ( _targetXYZ - GetXYZ(_q) ); // GetXYZ also updates the config to _q, so Jaclin use an updated value
@@ -159,10 +157,8 @@ bool JTFollower::GoToXYZ( Eigen::VectorXd &_q,
  */
 Eigen::VectorXd JTFollower::GetXYZ( Eigen::VectorXd _q ) {
 
-	
   // Get current XYZ position
-  mWorld->getRobot(mRobotId)->setConfig( mLinks, _q );
-  mWorld->getRobot(mRobotId)->update();
+  mRobot->setConfig( mLinks, _q );
   
   Eigen::MatrixXd qTransform = mEENode->getWorldTransform();
   Eigen::VectorXd qXYZ(3); qXYZ << qTransform(0,3), qTransform(1,3), qTransform(2,3);

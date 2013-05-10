@@ -41,8 +41,7 @@
  */
 
 #include "Grasper.h"
-#include "robotics/World.h"
-#include "robotics/Robot.h"
+#include "simulation/World.h"
 #include "kinematics/Dof.h"
 #include <GUI/Viewer.h>
 #include <Eigen/LU>
@@ -54,12 +53,12 @@
 
 using namespace std;
 using namespace Eigen;
-using namespace robotics;
+using namespace simulation;
 using namespace collision_checking;
 
 namespace planning {
     
-    Grasper::Grasper(World* w, robotics::Robot* r, string mEEName) {
+	Grasper::Grasper(World* w, dynamics::SkeletonDynamics* r, string mEEName) {
         world = w;
         robot = r;
         EEName = mEEName;
@@ -78,7 +77,7 @@ namespace planning {
         this->setStartConfig(start);
         
         //initialize path shortener
-        shortener = new planning::PathShortener(world, 0, dofs);
+        shortener = new planning::PathShortener(world, robot, dofs);
         
         //initialize JointMover with end effector and arm's DoFs
         jm = new JointMover(*world, robot, dofs, EEName, step);
@@ -262,7 +261,7 @@ namespace planning {
             fingerJoint->getDof(0)->setValue(0);
             fingerJoint->getChildNode()->getChildJoint(jointID)->getDof(0)->setValue(0);
             fingerJoint->getChildNode()->getChildJoint(jointID)->getChildNode()->getChildJoint(0)->getDof(0)->setValue(0);
-            robot->update();
+            update(robot);
         }
     }
     
@@ -275,17 +274,17 @@ namespace planning {
         
         if((newJointValue <= (joint->getDof(0)->getMax()*0.4)) && (newJointValue >= (joint->getDof(0)->getMin()*0.4))){
             joint->getDof(0)->setValue(newJointValue);
-            robot->update();
+            update(robot);
            
-            CollisionSkeletonNode* other = world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(target);
+            CollisionSkeletonNode* other = world->getCollisionHandle()->getCollisionChecker()->getCollisionSkeletonNode(target);
             
             //check collision against child BodyNode
-            if(!checkCollisions || !world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(joint->getChildNode())->checkCollision(other, &contacts, contacts.size())){
+            if(!checkCollisions || !world->getCollisionHandle()->getCollisionChecker()->getCollisionSkeletonNode(joint->getChildNode())->checkCollision(other, &contacts, contacts.size())){
                 ret = false;
             }
             else{
                 joint->getDof(0)->setValue(oldJointValue);
-                robot->update();
+                update(robot);
             }
         }
         return ret;
@@ -301,10 +300,10 @@ namespace planning {
     int Grasper::checkHandCollisionCount(){
         vector<ContactPoint> contacts(10);
         int count = 0;
-        CollisionSkeletonNode* other = world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(objectNode);
+        CollisionSkeletonNode* other = world->getCollisionHandle()->getCollisionChecker()->getCollisionSkeletonNode(objectNode);
         for(list<kinematics::Joint*>::iterator loc = joints.begin(); loc != joints.end(); loc++){
              kinematics::Joint *j(*loc);
-            count += (world->mCollisionHandle->getCollisionChecker()->getCollisionSkeletonNode(j->getChildNode())->checkCollision(other, &contacts, contacts.size()) > 0);
+            count += (world->getCollisionHandle()->getCollisionChecker()->getCollisionSkeletonNode(j->getChildNode())->checkCollision(other, &contacts, contacts.size()) > 0);
         }
         return count;
     }
@@ -366,6 +365,15 @@ namespace planning {
             hand_dofs.push_back(fingerJoint->getDof(0)->getSkelIndex());
             hand_dofs.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getDof(0)->getSkelIndex());
             hand_dofs.push_back(fingerJoint->getChildNode()->getChildJoint(0)->getChildNode()->getChildJoint(0)->getDof(0)->getSkelIndex());
+        }
+    }
+
+    void Grasper::update(dynamics::SkeletonDynamics* robot) {
+        for (int i = 0; i < robot->getNumNodes(); i++) {
+            robot->getNode(i)->updateTransform();
+        }
+        for (int i = 0; i < robot->getNumNodes(); i++) {
+            robot->getNode(i)->updateFirstDerivatives();
         }
     }
 }

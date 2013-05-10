@@ -43,6 +43,7 @@
 #include <Tabs/GRIPTab.h>
 
 namespace planning { class Controller; }
+namespace dynamics { class SkeletonDynamics; }
 
 class planningTab : public GRIPTab
 {
@@ -65,7 +66,7 @@ public:
 
   planning::Controller* mController;
   
-  int mRobotIndex;
+  dynamics::SkeletonDynamics* mRobot;
   std::vector<int> mArmDofs;
   Eigen::VectorXd mStartConf;
   Eigen::VectorXd mGoalConf;

@@ -129,20 +129,16 @@ GRIPTab(parent, id, pos, size, style) {
 /// Setup grasper when scene is loaded as well as populating arm's DoFs
 void manipulationTab::GRIPEventSceneLoaded() {
     // Find robot and set initial configuration for the legs
-    for(int i = 0; i < mWorld->getNumSkeletons(); i++){
-        if(mWorld->getSkeleton(i)->getName() == "GolemHubo"){
-            mRobot = (robotics::Robot*) mWorld->getSkeleton(i);
-            break;
-        }
-    }
+    mRobot = mWorld->getSkeleton("GolemHubo");
     assert(mRobot);
-    mRobot->getDof(19)->setValue(-10.0 * M_PI / 180.0);
-    mRobot->getDof(20)->setValue(-10.0 * M_PI / 180.0);
-    mRobot->getDof(23)->setValue(20.0 * M_PI / 180.0);
-    mRobot->getDof(24)->setValue(20.0 * M_PI / 180.0);
-    mRobot->getDof(27)->setValue(-10.0 * M_PI / 180.0);
-    mRobot->getDof(28)->setValue(-10.0 * M_PI / 180.0);
-    mRobot->update();
+
+    // Set initial configuration for the legs
+    int legDofsArray[] = {19, 20, 23, 24, 27, 28};
+    vector<int> legDofs(legDofsArray, legDofsArray + 6);
+    Eigen::VectorXd legValues(6);
+    legValues << -10.0, -10.0, 20.0, 20.0, -10.0, -10.0;
+    legValues *= M_PI / 180.0;
+    mRobot->setConfig(legDofs, legValues);
 
     // Define right arm nodes
     const string armNodes[] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "Body_RWP"};
@@ -239,8 +235,8 @@ void manipulationTab::grasp() {
     
     // Deactivate collision checking between the feet and the ground during planning
     dynamics::SkeletonDynamics* ground = mWorld->getSkeleton("ground");
-    mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
-    mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
+    mWorld->getCollisionHandle()->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
+    mWorld->getCollisionHandle()->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
     
     // Define PD controller gains
     Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mRobot->getNumDofs());
@@ -270,7 +266,6 @@ void manipulationTab::grasp() {
     
     // CHECK
     cout << "Offline Plan Size: " << path.size() << endl;
-    mRobot->update();
     
     // Create trajectory; no need to shorten path here
     const Eigen::VectorXd maxVelocity = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
@@ -281,10 +276,10 @@ void manipulationTab::grasp() {
     mController->setTrajectory(trajectory, 0, mTotalDofs);
     
     // Reactivate collision of feet with floor Body_LAR Body_RAR
-    mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
-    mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
+    mWorld->getCollisionHandle()->getCollisionChecker()->activatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
+    mWorld->getCollisionHandle()->getCollisionChecker()->activatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
 
-    printf("Controller time: %f \n", mWorld->mTime);
+    printf("Controller time: %f \n", mWorld->getTime());
     
 }
 
@@ -292,8 +287,8 @@ void manipulationTab::grasp() {
 void manipulationTab::retryGrasp(){
     // Deactivate collision checking between the feet and the ground during planning
     dynamics::SkeletonDynamics* ground = mWorld->getSkeleton("ground");
-    mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
-    mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
+    mWorld->getCollisionHandle()->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
+    mWorld->getCollisionHandle()->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
     
     // Setup grasper by updating startConfig to be current robot's config
     grasper->init(mArmDofs, mRobot->getConfig(mArmDofs), selectedNode, 0.02);
@@ -305,7 +300,6 @@ void manipulationTab::retryGrasp(){
     
     // CHECK
     cout << "\tReplanned Path Size: " << path.size()<< endl;
-    mRobot->update();
      
     // Create trajectory; no need to shorten path here
     const Eigen::VectorXd maxVelocity = 0.6 * Eigen::VectorXd::Ones(mTotalDofs.size());
@@ -316,15 +310,15 @@ void manipulationTab::retryGrasp(){
     mController->setTrajectory(trajectory, 0, mTotalDofs);
     
     // Reactivate collision of feet with floor Body_LAR Body_RAR
-    mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
-    mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
+    mWorld->getCollisionHandle()->getCollisionChecker()->activatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
+    mWorld->getCollisionHandle()->getCollisionChecker()->activatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
 
-    printf("\tReplanned Controller Time: %f \n", mWorld->mTime);
+    printf("\tReplanned Controller Time: %f \n", mWorld->getTime());
 }
 
 /// Before each simulation step we set the torques the controller applies to the joints and check for plan's accuracy
 void manipulationTab::GRIPEventSimulationBeforeTimestep() {
-    Eigen::VectorXd positionTorques = mController->getTorques(mRobot->getPose(), mRobot->getQDotVector(), mWorld->mTime);
+	Eigen::VectorXd positionTorques = mController->getTorques(mRobot->getPose(), mRobot->getPoseVelocity(), mWorld->getTime());
     // section here to control the fingers for force-based grasping
     // instead of position-based grasping
     mRobot->setInternalForces(positionTorques);
@@ -357,7 +351,6 @@ void manipulationTab::GRIPStateChange() {
         return;
     }
     switch (selectedTreeNode->dType) {
-    case Return_Type_Object:
     case Return_Type_Robot:
         selectedNode = ((kinematics::Skeleton*)selectedTreeNode->data)->getRoot();
         break;

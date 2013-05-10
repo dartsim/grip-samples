@@ -56,9 +56,6 @@
 #include <collision/CollisionSkeleton.h>
 #include "JointMover.h"
 #include "Controller.h"
-namespace robotics {
-    class World;
-}
 
 namespace planning {
 
@@ -66,7 +63,7 @@ namespace planning {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        Grasper(robotics::World* world, robotics::Robot* r, std::string mEEName);
+        Grasper(simulation::World* world, dynamics::SkeletonDynamics* r, std::string mEEName);
         virtual ~Grasper();
         
         void init(std::vector<int> dofs, Eigen::VectorXd start, kinematics::BodyNode* objectNode, double step);
@@ -83,11 +80,11 @@ namespace planning {
         void setStartConfig(Eigen::VectorXd start);
         
     protected:
-        robotics::World* world;
+        simulation::World* world;
         JointMover* jm;
         planning::PathShortener* shortener;
         
-        robotics::Robot* robot;
+        dynamics::SkeletonDynamics* robot;
         std::vector<int> dofs;
         std::vector<int> hand_dofs;
         list<kinematics::Joint*> joints;
@@ -102,6 +99,7 @@ namespace planning {
         void populateEndEffIds(int fingers, list<kinematics::Joint*> &joints, vector<int> &jointDirections);
         bool moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, 
                 vector<collision_checking::ContactPoint> contacts, bool checkCollisions);
+        void update(dynamics::SkeletonDynamics* robot);
     };
 }
 

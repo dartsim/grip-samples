@@ -43,7 +43,6 @@
  */
 #include <iostream>
 #include <stdlib.h>
-#include <robotics/Robot.h>
 #include <dynamics/BodyNodeDynamics.h>
 #include <kinematics/TrfmTranslate.h>
 #include <kinematics/Transformation.h>
@@ -61,7 +60,7 @@ using namespace std;
 using namespace Eigen;
 
 const double dt = 0.1;
-JointMover::JointMover( robotics::World &_world, robotics::Robot* robot, const std::vector<int> &_links,  std::string _EEName,
+JointMover::JointMover( simulation::World &_world, dynamics::SkeletonDynamics* robot, const std::vector<int> &_links,  std::string _EEName,
 		       double _configStep)
   : mConfigStep(_configStep), mWorld(_world), mRobot(robot) {
 
@@ -112,7 +111,6 @@ VectorXd JointMover::OneStepTowardsXYZRPY( VectorXd _q, VectorXd _targetXYZRPY) 
 // be a 3D vector (X,Y,Z) or a 6D vector (X,Y,Z,R,P,Y)
 bool JointMover::GoToXYZRPY( VectorXd _qStart, VectorXd _targetXYZRPY, VectorXd &_qResult, std::list<Eigen::VectorXd> &path) {
   _qResult = _qStart;
-  mRobot->update();
   bool both = (_targetXYZRPY.size() == 6);
   // GetXYZ also updates the config to _qResult, so Jaclin use an updated value
   VectorXd delta = _targetXYZRPY - GetXYZRPY(_qResult, both); 
@@ -121,12 +119,10 @@ bool JointMover::GoToXYZRPY( VectorXd _qStart, VectorXd _targetXYZRPY, VectorXd 
   while( delta.norm() > mWorkspaceThresh && iter < mMaxIter ) {
     _qResult = OneStepTowardsXYZRPY(_qResult, _targetXYZRPY);
     path.push_back(_qResult);
-    mRobot->update();
     delta = (_targetXYZRPY - GetXYZRPY(_qResult, both) );
     //PRINT(delta.norm());
     iter++;
   }
-  mRobot->update();
   return iter < mMaxIter;
 }
 
@@ -135,7 +131,6 @@ bool JointMover::GoToXYZRPY( VectorXd _qStart, VectorXd _targetXYZRPY, VectorXd 
 VectorXd JointMover::GetXYZRPY( VectorXd _q, bool both ) {
   // Get current XYZ position
   mRobot->setConfig(mLinks, _q);
-  mRobot->update();
   
   MatrixXd qTransform = mEENode->getWorldTransform();
   VectorXd qXYZRPY;

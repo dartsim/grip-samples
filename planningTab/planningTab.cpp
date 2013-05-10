@@ -49,7 +49,6 @@
 #include <kinematics/ShapeBox.h>
 #include <kinematics/Dof.h>
 #include <kinematics/Joint.h>
-#include <robotics/Robot.h>
 #include <planning/PathPlanner.h>
 #include <planning/PathShortener.h>
 #include <planning/PathFollowingTrajectory.h>
@@ -112,9 +111,6 @@ planningTab::planningTab(wxWindow *parent, const wxWindowID id, const wxPoint& p
 
   SetSizer(sizerFull);
 
-  // Initialize variables
-  mRobotIndex = 0; // We only simulate one robot in this demo so we know its index is 0
-
   // Set predefined start and goal configuration
   mPredefStartConf.resize(6);
   mPredefGoalConf.resize(6);
@@ -127,51 +123,52 @@ planningTab::planningTab(wxWindow *parent, const wxWindowID id, const wxPoint& p
 
 /// Gets triggered after a world is loaded
 void planningTab::GRIPEventSceneLoaded() {
+  mRobot = mWorld->getSkeleton("GolemHubo");
+
   // Set initial configuration for the legs
-  mWorld->getRobot(mRobotIndex)->getDof(19)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(20)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(23)->setValue(20.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(24)->setValue(20.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(27)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(28)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->update();
+  int legDofsArray[] = {19, 20, 23, 24, 27, 28};
+  vector<int> legDofs(legDofsArray, legDofsArray + 6);
+  Eigen::VectorXd legValues(6);
+  legValues << -10.0, -10.0, 20.0, 20.0, -10.0, -10.0;
+  legValues *= M_PI / 180.0;
+  mRobot->setConfig(legDofs, legValues);
 
   // Define right arm nodes
   const string armNodes[] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "Body_RWP"}; 
   mArmDofs.resize(6);
   for(int i = 0; i < mArmDofs.size(); i++) {
-    mArmDofs[i] = mWorld->getRobot(mRobotIndex)->getNode(armNodes[i].c_str())->getDof(0)->getSkelIndex();
+    mArmDofs[i] = mRobot->getNode(armNodes[i].c_str())->getDof(0)->getSkelIndex();
   }
 }
 
 
 /// Before each simulation step we set the torques the controller applies to the joints
 void planningTab::GRIPEventSimulationBeforeTimestep() {
-  Eigen::VectorXd torques = mController->getTorques(mWorld->getRobot(mRobotIndex)->getPose(), mWorld->getRobot(mRobotIndex)->getQDotVector(), mWorld->mTime);
-  mWorld->getRobot(mRobotIndex)->setInternalForces(torques);
+  Eigen::VectorXd torques = mController->getTorques(mRobot->getPose(), mRobot->getPoseVelocity(), mWorld->getTime());
+  mRobot->setInternalForces(torques);
 }
 
 
 /// Set start configuration to the configuration the arm is currently in
 void planningTab::onButtonSetStart(wxCommandEvent & _evt) {
-  if(!mWorld || mWorld->getNumRobots() < 1) {
+  if(!mWorld || mWorld->getNumSkeletons() < 1) {
     cout << "No world loaded or world does not contain a robot." << endl;
     return;
   }
 
-  mStartConf = mWorld->getRobot(mRobotIndex)->getConfig(mArmDofs);
+  mStartConf = mRobot->getConfig(mArmDofs);
   cout << "Start Configuration: " << mStartConf.transpose() << endl;
 }
 
 
 /// Set goal configuration to the configuration the arm is currently in
 void planningTab::onButtonSetGoal(wxCommandEvent & _evt) {
-  if(!mWorld || mWorld->getNumRobots() < 1) {
+  if(!mWorld || mWorld->getNumSkeletons() < 1) {
     cout << "No world loaded or world does not contain a robot." << endl;
     return;
   }
 
-  mGoalConf = mWorld->getRobot(mRobotIndex)->getConfig(mArmDofs);
+  mGoalConf = mRobot->getConfig(mArmDofs);
   cout << "Goal Configuration: " << mGoalConf.transpose() << endl;
 }
 
@@ -191,8 +188,8 @@ void planningTab::onButtonSetPredefGoal(wxCommandEvent & _evt) {
 /// Move objects to obstruct the direct path between the predefined start and goal configurations
 void planningTab::onButtonRelocateObjects(wxCommandEvent & _evt) {
 
-  robotics::Robot* orangeCube = (robotics::Robot*)mWorld->getSkeleton("orangeCube");
-  robotics::Robot* yellowCube = (robotics::Robot*)mWorld->getSkeleton("yellowCube");
+  dynamics::SkeletonDynamics* orangeCube = mWorld->getSkeleton("orangeCube");
+  dynamics::SkeletonDynamics* yellowCube = mWorld->getSkeleton("yellowCube");
   
   if(!orangeCube || !yellowCube) {
     cout << "Did not find orange or yellow object. Exiting and no moving anything" << endl;
@@ -201,9 +198,9 @@ void planningTab::onButtonRelocateObjects(wxCommandEvent & _evt) {
   
   Eigen::Matrix<double, 6, 1> pose; 
   pose << 0.30, -0.30, 0.83, 0.0, 0.0, 0.0;
-  orangeCube->setRootTransform(pose);
+  orangeCube->setPose(pose);
   pose << 0.30, -0.30, 0.935, 0.0, 0.0, 0.0;
-  yellowCube->setRootTransform(pose);
+  yellowCube->setPose(pose);
 
   viewer->DrawGLScene();
 }
@@ -212,7 +209,7 @@ void planningTab::onButtonRelocateObjects(wxCommandEvent & _evt) {
 /// Show the currently set start configuration
 void planningTab::onButtonShowStart(wxCommandEvent & _evt) {
   cout << "Showing start conf for right arm: " << mStartConf.transpose() << endl;
-  mWorld->getRobot(mRobotIndex)->setConfig(mArmDofs, mStartConf);
+  mRobot->setConfig(mArmDofs, mStartConf);
   viewer->DrawGLScene();
 }
 
@@ -220,7 +217,7 @@ void planningTab::onButtonShowStart(wxCommandEvent & _evt) {
 /// Show the currently set goal configuration
 void planningTab::onButtonShowGoal(wxCommandEvent & _evt) {
   cout << "Showing goal conf for right arm: " << mGoalConf.transpose() << endl;
-  mWorld->getRobot(mRobotIndex)->setConfig(mArmDofs, mGoalConf);
+  mRobot->setConfig(mArmDofs, mGoalConf);
   viewer->DrawGLScene();
 }
 
@@ -229,20 +226,20 @@ void planningTab::onButtonShowGoal(wxCommandEvent & _evt) {
 void planningTab::onButtonPlan(wxCommandEvent & _evt) {
 
   // Store the actuated joints (all except the first 6 which are only a convenience to locate the robot in the world)
-  std::vector<int> actuatedDofs(mWorld->getRobot(mRobotIndex)->getNumDofs() - 6);
+  std::vector<int> actuatedDofs(mRobot->getNumDofs() - 6);
   for(unsigned int i = 0; i < actuatedDofs.size(); i++) {
     actuatedDofs[i] = i + 6;
   }
   
   // Deactivate collision checking between the feet and the ground during planning
   dynamics::SkeletonDynamics* ground = mWorld->getSkeleton("ground");
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_LAR"), ground->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_RAR"), ground->getNode(1));
+  mWorld->getCollisionHandle()->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
+  mWorld->getCollisionHandle()->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
   
   // Define PD controller gains
-  Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
-  Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
-  Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
+  Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mRobot->getNumDofs());
+  Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mRobot->getNumDofs());
+  Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mRobot->getNumDofs());
 
   // Define gains for the ankle PD
   std::vector<int> ankleDofs(2);
@@ -252,23 +249,21 @@ void planningTab::onButtonPlan(wxCommandEvent & _evt) {
   const Eigen::VectorXd ankleDGains = -200.0 * Eigen::VectorXd::Ones(2);
 
   // Set robot to start configuration
-  mWorld->getRobot(mRobotIndex)->setConfig(mArmDofs, mStartConf);
+  mRobot->setConfig(mArmDofs, mStartConf);
 
   // Create controller
-  mController = new planning::Controller(mWorld->getRobot(mRobotIndex), actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
+  mController = new planning::Controller(mRobot, actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
 
   // Call path planner
   planning::PathPlanner<> pathPlanner(*mWorld);
   std::list<Eigen::VectorXd> path;
-  if(!pathPlanner.planPath(mRobotIndex, mArmDofs, mStartConf, mGoalConf, path)) {
+  if(!pathPlanner.planPath(mRobot, mArmDofs, mStartConf, mGoalConf, path)) {
     std::cout << "Path planner could not find a path." << std::endl;
   }
   else {
     // Call path shortener
-    planning::PathShortener pathShortener(mWorld, mRobotIndex, mArmDofs);
+    planning::PathShortener pathShortener(mWorld, mRobot, mArmDofs);
     pathShortener.shortenPath(path);
-
-    mWorld->getRobot(mRobotIndex)->update();
 
     // Convert path into time-parameterized trajectory satisfying acceleration and velocity constraints
     const Eigen::VectorXd maxVelocity = 0.6 * Eigen::VectorXd::Ones(mArmDofs.size());
@@ -279,8 +274,8 @@ void planningTab::onButtonPlan(wxCommandEvent & _evt) {
   }
   
   // Reactivate collision of feet with floor
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_LAR"), ground->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_RAR"), ground->getNode(1));
+  mWorld->getCollisionHandle()->getCollisionChecker()->activatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
+  mWorld->getCollisionHandle()->getCollisionChecker()->activatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
 }
 
 // Local Variables:

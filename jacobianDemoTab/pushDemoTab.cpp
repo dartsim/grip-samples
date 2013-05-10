@@ -61,7 +61,6 @@ using namespace std;
 #include <kinematics/ShapeBox.h>
 #include <kinematics/Dof.h>
 #include <kinematics/Joint.h>
-#include <robotics/Robot.h>
 
 // Planning and controller
 #include <planning/PathPlanner.h>
@@ -135,8 +134,6 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
   // Additional settings
   mCurrentFrame = 0;
 
-  mRobotIndex = 0; // We only simulate one robot in this demo so we know its index is 0
-
   mPredefStartConf.resize( mRA_NumNodes );
   
   // Start and Conf with furniture_2
@@ -145,6 +142,16 @@ pushDemoTab::pushDemoTab(wxWindow *parent, const wxWindowID id,
 
 }
 
+
+void pushDemoTab::GRIPEventSceneLoaded() {
+  mRobot = mWorld->getSkeleton("GolemHubo");
+
+  // Get the indices of the right arm's DOF
+  mArmDofs.resize(mRA_NumNodes);
+  for(int i = 0; i < mRA_NumNodes; i++) {
+    mArmDofs[i] = mRobot->getNode(mRA_Nodes[i].c_str())->getDof(0)->getSkelIndex();
+  }
+}
 
 /**
  * @function OnButton
@@ -160,17 +167,12 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
   case id_button_SetStart: {
     
     if( mWorld != NULL ) { 
-      if( mWorld->getNumRobots() < 1 ) {  
+      if( mWorld->getNumSkeletons() < 1 ) {  
 	printf("No robot in the loaded world, you need one! \n"); break; 
       }
       
-      std::cout<<"* Start Conf: ";
-      mStartConf.resize( mRA_NumNodes );
-      for(int i = 0; i < mRA_NumNodes; i++) {
-	mStartConf[i] = mWorld->getRobot(mRobotIndex)->getNode( mRA_Nodes[i].c_str() )->getDof(0)->getValue();
-	std::cout<< " "<<mStartConf[i];
-      }  
-      std::cout<<std::endl;
+      mStartConf = mRobot->getConfig(mArmDofs);
+      std::cout<< "* Start Conf: " << mStartConf.transpose() << endl;
     }      
     else {  
       std::cout<<"--(!) No world loaded, I cannot set a start position (!)--\n"<<std::endl;
@@ -184,14 +186,14 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
   case id_button_SetGoal: {
 
     if( mWorld != NULL ) { 
-      if( mWorld->getNumRobots() < 1 ) {  
+      if( mWorld->getNumSkeletons() < 1 ) {  
 	printf("No robot in the loaded world, you need one! \n"); break; 
       }
        
       // Store the selected treeViewer element
       mGoalObjectIndex = -1;
-      for( int i = 0; i < mWorld->getNumObjects(); ++i ) {
-	if( mWorld->getObject(i)->getName() == mGoalObject ) {
+      for( int i = 0; i < mWorld->getNumSkeletons(); ++i ) {
+	if( mWorld->getSkeleton(i)->getName() == mGoalObject ) {
 	  mGoalObjectIndex = i; break;
 	}
       }
@@ -202,7 +204,7 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
       else {
 	mGoalPos.resize( mSizePos );
 	Eigen::Matrix<double, 6, 1> pose;
-	pose = mWorld->getObject( mGoalObjectIndex )->getRootTransform();
+	pose = mWorld->getSkeleton( mGoalObjectIndex )->getPose().topRows<6>();
 	mGoalPos(0) = pose(0); mGoalPos(1) = pose(1); mGoalPos(2) = pose(2);
 
 	std::cout<<"* Goal object: "<<mGoalObject<<" with index: "<<mGoalObjectIndex<<std::endl;
@@ -224,7 +226,6 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
 
     /** Set start configuration hard-coded (right arm) */
   case id_button_SetPredefStart : {
-    mStartConf.resize( mRA_NumNodes );
     mStartConf = mPredefStartConf;
     
   } break;
@@ -238,14 +239,8 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
     }   
 
     // Setting start configuration
-    std::cout<< "Showing start conf for right arm: ";
-    for(int i = 0; i < mRA_NumNodes; i++) {
-      mWorld->getRobot(mRobotIndex)->getNode( mRA_Nodes[i].c_str() )->getDof(0)->setValue( mStartConf(i) );
-      std::cout<<" "<<mStartConf(i)<<" ";
-    }  
-    std::cout<<std::endl;
-
-    mWorld->getRobot(mRobotIndex)->update();
+    std::cout<< "Showing start conf for right arm: " << mStartConf.transpose() << endl;
+    mRobot->setConfig(mArmDofs, mStartConf);
     viewer->DrawGLScene();
   } break;
 
@@ -278,50 +273,37 @@ void pushDemoTab::OnButton(wxCommandEvent & _evt) {
  * @brief Set initial dynamic parameters and call planner and controller
  */
 void pushDemoTab::initSettings() {
-
-  // Get the indices of the right arm's DOF
-  std::vector<int> trajectoryDofs( mRA_NumNodes);
-  printf("Trajectory nodes are: ");
-  for(int i = 0; i < mRA_NumNodes; i++) {
-    trajectoryDofs[i] = mWorld->getRobot(mRobotIndex)->getNode(mRA_Nodes[i].c_str())->getDof(0)->getSkelIndex();
-    printf(" %d ", trajectoryDofs[i]);
-  }
-  printf("\n");
   
   // Store the actuated joints (all except the first 6 which are only a convenience to locate the robot in the world)
-  std::vector<int> actuatedDofs(mWorld->getRobot(mRobotIndex)->getNumDofs() - 6);
+  std::vector<int> actuatedDofs(mRobot->getNumDofs() - 6);
   for(unsigned int i = 0; i < actuatedDofs.size(); i++) {
     actuatedDofs[i] = i + 6;
   }
   
   // Set initial configuration for the legs
-  mWorld->getRobot(mRobotIndex)->getDof(19)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(20)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(23)->setValue(20.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(24)->setValue(20.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(27)->setValue(-10.0 * M_PI/180.0);
-  mWorld->getRobot(mRobotIndex)->getDof(28)->setValue(-10.0 * M_PI/180.0);
+  int legDofsArray[] = {19, 20, 23, 24, 27, 28};
+  vector<int> legDofs(legDofsArray, legDofsArray + 6);
+  Eigen::VectorXd legValues(6);
+  legValues << -10.0, -10.0, 20.0, 20.0, -10.0, -10.0;
+  legValues *= M_PI / 180.0;
+  mRobot->setConfig(legDofs, legValues);
 
   // Set initial configuration for the right arm
-  for(int i = 0; i < mRA_NumNodes; i++) {
-    mWorld->getRobot(mRobotIndex)->getNode( mRA_Nodes[i].c_str() )->getDof(0)->setValue( mStartConf(i) );
-  }  
+  mRobot->setConfig(mArmDofs, mStartConf);
   
-  // Update the view
-  mWorld->getRobot(mRobotIndex)->update();
   viewer->DrawGLScene();
   
   printf("Set initial configuration for the legs \n");
 
   // Deactivate collision checking between the feet and the ground during planning
   dynamics::SkeletonDynamics* ground = mWorld->getSkeleton("ground");
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_LAR"), ground->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->deactivatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_RAR"), ground->getNode(1));
+  mWorld->getCollisionHandle()->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
+  mWorld->getCollisionHandle()->getCollisionChecker()->deactivatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
   
   // Define PD controller gains
-  Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
-  Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
-  Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mWorld->getRobot(mRobotIndex)->getNumDofs());
+  Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mRobot->getNumDofs());
+  Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mRobot->getNumDofs());
+  Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mRobot->getNumDofs());
 
   // Define gains for the ankle PD
   std::vector<int> ankleDofs(2);
@@ -331,35 +313,31 @@ void pushDemoTab::initSettings() {
   const Eigen::VectorXd ankleDGains = -2000.0 * Eigen::VectorXd::Ones(2);
 
   // Create controller
-  mController = new planning::Controller(mWorld->getRobot(mRobotIndex), actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
+  mController = new planning::Controller(mRobot, actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
 
   // Find path
-  Eigen::VectorXd initState = mWorld->getState();
   std::list<Eigen::VectorXd> path;
   path = getPath();
-  planning::PathShortener pathShortener(mWorld, mRobotIndex, trajectoryDofs);
+  planning::PathShortener pathShortener(mWorld, mRobot, mArmDofs);
   pathShortener.shortenPath(path);
-  mWorld->setState(initState);
 
   if( path.size() < 1 ) {
     std::cout << "<!> Path planner could not find a path" << std::endl;
   }
   else {
 
-  mWorld->getRobot(mRobotIndex)->update();
-
   const Eigen::VectorXd maxVelocity = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
   const Eigen::VectorXd maxAcceleration = 0.3 * Eigen::VectorXd::Ones(mRA_NumNodes);
   planning::Trajectory* trajectory = new planning::PathFollowingTrajectory(path, maxVelocity, maxAcceleration);
   std::cout << "-- Trajectory duration: " << trajectory->getDuration() << endl;
-  //mController->setTrajectory(trajectory, 0.1, trajectoryDofs);
-  mController->setTrajectory(trajectory, 0, trajectoryDofs);
+  //mController->setTrajectory(trajectory, 0.1, mArmDofs);
+  mController->setTrajectory(trajectory, 0, mArmDofs);
   }
   
   // Reactivate collision of feet with floor
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_LAR"), ground->getNode(1));
-  mWorld->mCollisionHandle->getCollisionChecker()->activatePair(mWorld->getRobot(mRobotIndex)->getNode("Body_RAR"), ground->getNode(1));
-  printf("Controller time: %f \n", mWorld->mTime);
+  mWorld->getCollisionHandle()->getCollisionChecker()->activatePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
+  mWorld->getCollisionHandle()->getCollisionChecker()->activatePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
+  printf("Controller time: %f \n", mWorld->getTime());
 }
 
 /**
@@ -375,7 +353,7 @@ std::list<Eigen::VectorXd> pushDemoTab::getPath() {
 
   printf("Trajectory nodes are: \n");
   for(int i = 0; i < mRA_NumNodes; i++) {
-    trajectoryDofs[i] = mWorld->getRobot(mRobotIndex)->getNode(mRA_Nodes[i].c_str())->getDof(0)->getSkelIndex();
+    trajectoryDofs[i] = mRobot->getNode(mRA_Nodes[i].c_str())->getDof(0)->getSkelIndex();
     printf(" %d ", trajectoryDofs[i]);
   }
   printf("\n");
@@ -384,13 +362,13 @@ std::list<Eigen::VectorXd> pushDemoTab::getPath() {
   JTFollower *jt = new JTFollower(*mWorld);
 
   mEEName = "Body_RWP";
-  for( int i = 0; i < mWorld->getRobot( mRobotIndex )->getNumNodes(); ++i ) {\
-    if( mWorld->getRobot( mRobotIndex )->getNode(i)->getName() == mEEName ) {
+  for( int i = 0; i < mRobot->getNumNodes(); ++i ) {\
+    if( mRobot->getNode(i)->getName() == mEEName ) {
       mEEId = i; break;
     }
   }
 
-  jt->init( mRobotIndex, trajectoryDofs, mEEName, mEEId, 0.02 ); 
+  jt->init( mRobot, trajectoryDofs, mEEName, mEEId, 0.02 ); 
   
   std::vector<Eigen::VectorXd> wsPath; 
   Eigen::VectorXd start = mStartConf; 
@@ -417,9 +395,7 @@ std::list<Eigen::VectorXd> pushDemoTab::getPath() {
  * @brief Before each sim step we must set the internal forces 
  */
 void pushDemoTab::GRIPEventSimulationBeforeTimestep() {
-
-  mWorld->getRobot(mRobotIndex)->setInternalForces(mController->getTorques(mWorld->getRobot(mRobotIndex)->getPose(), mWorld->getRobot(mRobotIndex)->getQDotVector(), mWorld->mTime));
- 
+  mRobot->setInternalForces(mController->getTorques(mRobot->getPose(), mRobot->getPoseVelocity(), mWorld->getTime()));
 }
 
 /**
@@ -456,12 +432,6 @@ void pushDemoTab::GRIPStateChange() {
   string statusBuf;
   string buf, buf2;
   switch (selectedTreeNode->dType) {
-  case Return_Type_Object:
-    statusBuf = " Selected Object: ";
-    buf = "You clicked on object: ";
-    mGoalObject = ( (robotics::Robot*)(selectedTreeNode->data) )->getName();
-    
-    break;
   case Return_Type_Robot:
     statusBuf = " Selected Robot: ";
     buf = "You clicked on robot: ";

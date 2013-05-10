@@ -49,7 +49,7 @@
 #include <vector>
 #include <dynamics/BodyNodeDynamics.h>
 #include <dynamics/SkeletonDynamics.h>
-#include <robotics/World.h>
+#include <simulation/World.h>
 // Macros
 #define PRINT(x) std::cout << #x << " = " << x << std::endl;
 #define ECHO(x) std::cout << x << std::endl;
@@ -64,8 +64,8 @@ class JointMover {
   private:
     /// Member variables
     double mConfigStep;
-    robotics::World &mWorld;
-    robotics::Robot* mRobot;
+    simulation::World &mWorld;
+    dynamics::SkeletonDynamics* mRobot;
     std::vector<int> mLinks;
     
     double mWorkspaceThresh;
@@ -74,7 +74,7 @@ class JointMover {
     int mMaxIter;
     
   public:
-    JointMover( robotics::World &_world, robotics::Robot* robot, const std::vector<int> &_links,  std::string _EEName,
+    JointMover( simulation::World &_world, dynamics::SkeletonDynamics* robot, const std::vector<int> &_links,  std::string _EEName,
         double _configStep);
     MatrixXd GetPseudoInvJac(bool both);
     

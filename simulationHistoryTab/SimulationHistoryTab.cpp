@@ -143,7 +143,7 @@ void SimulationHistoryTab::OnButton(wxCommandEvent & _evt) {
             return;
         }
         savedIndex = savedIndices[selectedIndex];
-        mWorld->mTime = savedTimes[savedIndex];
+        mWorld->setTime(savedTimes[savedIndex]);
         mWorld->setState(savedStates[savedIndex]);
         // and then ask the frame to redraw the display
         wxCommandEvent evt(wxEVT_GRIP_SIMULATE_FRAME,GetId());
@@ -194,17 +194,17 @@ void SimulationHistoryTab::takeSnapshot(){
 
     // add a corresponding item to the list control
     wxString buf;
-    buf.Format(wxT("Snapshot %d, T = %f"), snapshotCount, mWorld->mTime);
+    buf.Format(wxT("Snapshot %d, T = %f"), snapshotCount, mWorld->getTime());
     long insertedAt = stateListControl->InsertItem(snapshotCount, buf, 0);
     stateListControl->SetItemData(insertedAt, snapshotCount);
-    buf.Printf(_T("%f"), mWorld->mTime);
+    buf.Printf(_T("%f"), mWorld->getTime());
     stateListControl->SetItem(insertedAt, 0, buf);
     buf.Printf(_T("%d"), snapshotCount);
     stateListControl->SetItem(insertedAt, 1, buf);
 
     // save a world state and update data structures
     savedStates.push_back(mWorld->getState());
-    savedTimes.push_back(mWorld->mTime);
+    savedTimes.push_back(mWorld->getTime());
     assert(savedStates.size() == savedTimes.size());
     savedIndices.insert(std::make_pair<int, int>(insertedAt, savedStates.size() - 1));
     

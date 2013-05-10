@@ -79,7 +79,7 @@ public:
   planning::Grasper* grasper;
   wxCheckBox* checkShowCollMesh;
   kinematics::BodyNode* selectedNode;
-  robotics::Robot* mRobot;
+  dynamics::SkeletonDynamics* mRobot;
   
   std::vector<int> mArmDofs;
   Eigen::VectorXd mStartConf;
