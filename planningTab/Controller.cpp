@@ -9,7 +9,7 @@
 #include <kinematics/Dof.h>
 #include <iostream>
 #include <dynamics/BodyNodeDynamics.h>
-#include <utils/UtilsMath.h>
+#include <math/UtilsMath.h>
 
 using namespace std;
 using namespace Eigen;
