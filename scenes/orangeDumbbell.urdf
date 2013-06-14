@@ -1,4 +1,4 @@
-<object
+<robot
   name="dumbbell">
   <link
     name="dumbbell">
@@ -25,4 +25,4 @@
       </geometry>
     </collision>
   </link>
-</object>
+</robot>

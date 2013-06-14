@@ -1,6 +1,6 @@
 <!-- table4.urdf -->
 
-<object name="table4">
+<robot name="table4">
 
 	<!-- Link 0 -->
 	<link name="link_0">
@@ -22,4 +22,4 @@
 		</collision>
 	</link>
 
-</object>
+</robot>

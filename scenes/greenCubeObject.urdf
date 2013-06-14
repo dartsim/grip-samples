@@ -1,6 +1,6 @@
 <!-- greenCubeObject.urdf -->
 
-<object name="greenCube_221">
+<robot name="greenCube_221">
 
 	<!-- Link 0 -->
 	<link name="link_0">
@@ -22,4 +22,4 @@
 		</collision>
 	</link>
 
-</object>
+</robot>

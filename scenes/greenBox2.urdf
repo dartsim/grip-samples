@@ -1,6 +1,6 @@
 <!-- greenBox2.urdf -->
 
-<object name="greenBox2">
+<robot name="greenBox2">
 
 	<!-- Link 0 -->
 	<link name="link_0">
@@ -22,4 +22,4 @@
 		</collision>
 	</link>
 
-</object>
+</robot>
