@@ -46,15 +46,15 @@
 #include <GUI/Viewer.h>
 #include <Eigen/LU>
 #include <set>
-#include <dart/dynamics/ContactDynamics.h>
-#include <dart/collision/CollisionSkeleton.h>
+#include <dart/dynamics/ConstraintDynamics.h>
+#include <dart/collision/CollisionDetector.h>
 #include <planning/PathShortener.h>
 #include "manipulationTab.h"
 
 using namespace std;
 using namespace Eigen;
 using namespace simulation;
-using namespace collision_checking;
+using namespace collision;
 
 namespace planning {
     
@@ -203,9 +203,9 @@ namespace planning {
     }
     
     /// Modifications of idea provided by Asfour et. al. GraspRRT on Robotics and Automation Magazine, 2012
-    vector<ContactPoint> Grasper::closeHandPositionBased(double step, kinematics::BodyNode* target) {
+    vector<Contact> Grasper::closeHandPositionBased(double step, kinematics::BodyNode* target) {
         
-        vector<ContactPoint> resulting_contacts(100); 
+        vector<Contact> resulting_contacts(100); 
         if (target == NULL) {
             ECHO("ERROR: Must select object to grasp first!");
             return resulting_contacts;
@@ -266,7 +266,7 @@ namespace planning {
     }
     
     /// Increase a joint value with collision checking
-    bool Grasper::moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, vector<ContactPoint> contacts, bool checkCollisions){
+    bool Grasper::moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, vector<Contact> contacts, bool checkCollisions){
         bool ret = true;
         
         double oldJointValue = joint->getDof(0)->getValue();
@@ -276,7 +276,7 @@ namespace planning {
             joint->getDof(0)->setValue(newJointValue);
             update(robot);
            
-            CollisionSkeletonNode* other = world->getCollisionHandle()->getCollisionChecker()->getCollisionSkeletonNode(target);
+            CollisionNode* other = world->getCollisionHandle()->getCollisionChecker()->getCollisionSkeletonNode(target);
             
             //check collision against child BodyNode
             if(!checkCollisions || !world->getCollisionHandle()->getCollisionChecker()->getCollisionSkeletonNode(joint->getChildNode())->checkCollision(other, &contacts, contacts.size())){
@@ -298,12 +298,12 @@ namespace planning {
     
     /// Check how many of the links are colliding with target node
     int Grasper::checkHandCollisionCount(){
-        vector<ContactPoint> contacts(10);
+        vector<Contact> contacts(10);
         int count = 0;
-        CollisionSkeletonNode* other = world->getCollisionHandle()->getCollisionChecker()->getCollisionSkeletonNode(objectNode);
+        CollisionNode* other = world->getCollisionHandle()->getCollisionChecker()->getCollisionSkeletonNode(objectNode);
         for(list<kinematics::Joint*>::iterator loc = joints.begin(); loc != joints.end(); loc++){
              kinematics::Joint *j(*loc);
-            count += (world->getCollisionHandle()->getCollisionChecker()->getCollisionSkeletonNode(j->getChildNode())->checkCollision(other, &contacts, contacts.size()) > 0);
+            count += (world->getCollisionHandle()->getCollisionChecker()->getCollisionNode(j->getChildNode())->checkCollision(other, &contacts, contacts.size()) > 0);
         }
         return count;
     }

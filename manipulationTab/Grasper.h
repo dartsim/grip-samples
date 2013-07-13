@@ -53,7 +53,7 @@
 #include <kinematics/ShapeBox.h>
 #include <kinematics/Dof.h>
 #include <kinematics/Joint.h>
-#include <collision/CollisionSkeleton.h>
+#include <collision/CollisionDetector.h>
 #include "JointMover.h"
 #include "Controller.h"
 
@@ -69,7 +69,7 @@ namespace planning {
         void init(std::vector<int> dofs, Eigen::VectorXd start, kinematics::BodyNode* objectNode, double step);
         void plan(std::list<Eigen::VectorXd> &path, std::vector<int> &totaldofs);
         double findClosestGraspingPoint(Eigen::Vector3d &closest, kinematics::BodyNode* object);
-        vector<collision_checking::ContactPoint> closeHandPositionBased(double stepSize, kinematics::BodyNode* target);
+        vector<collision::Contact> closeHandPositionBased(double stepSize, kinematics::BodyNode* target);
         void openHand();
         std::vector<int> getHandDofs();
         void printVectorContents(std::vector<int> v);
@@ -98,7 +98,7 @@ namespace planning {
     private:
         void populateEndEffIds(int fingers, list<kinematics::Joint*> &joints, vector<int> &jointDirections);
         bool moveLinkWithCollisionChecking(double step, int direction, kinematics::Joint* joint, kinematics::BodyNode* target, 
-                vector<collision_checking::ContactPoint> contacts, bool checkCollisions);
+                vector<collision::Contact> contacts, bool checkCollisions);
         void update(dynamics::SkeletonDynamics* robot);
     };
 }

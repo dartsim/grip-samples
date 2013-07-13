@@ -48,7 +48,6 @@
 
 #include <Tabs/GRIPTab.h>
 #include <Tabs/GRIPThread.h>
-#include <Tools/Constants.h>
 #include <unordered_map>
 #include <wx/listctrl.h>
 

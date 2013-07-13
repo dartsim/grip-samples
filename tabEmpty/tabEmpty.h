@@ -40,7 +40,6 @@
 #define EMPTY_TAB
 
 #include <Tabs/GRIPTab.h>
-#include <Tools/Constants.h>
 
 class EmptyTab : public GRIPTab
 {
