@@ -52,7 +52,7 @@
 #include <Eigen/LU>
 #include <list>
 #include <dart/dynamics/ContactDynamics.h>
-#include <dart/collision/CollisionSkeleton.h>
+#include <dart/collision/CollisionDetector.h>
 #include <dart/dynamics/SkeletonDynamics.h>
 #include "JointMover.h"
 

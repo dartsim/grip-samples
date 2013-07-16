@@ -61,7 +61,7 @@ using namespace std;
 
 /** Events */
 enum SimulationHistoryTabIDs {
-    id_listcontrol_state = 9278354,
+    id_listcontrol_state = 927,
     id_button_loadsnapshot,
     id_button_delsnapshot,
 };

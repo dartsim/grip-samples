@@ -159,7 +159,7 @@ namespace planning {
     /// Find closest point in target object to be grasped
     double Grasper::findClosestGraspingPoint(Vector3d &closest, kinematics::BodyNode* object){
         //1. get collision meshes and vertices
-    	kinematics::ShapeMesh* shapeMesh = dynamic_cast<kinematics::ShapeMesh *>(object->getCollisionShape());
+    	kinematics::ShapeMesh* shapeMesh = dynamic_cast<kinematics::ShapeMesh *>(object->getCollisionShape(0));
 
     	if(!shapeMesh) {
     		return -1;
@@ -275,11 +275,9 @@ namespace planning {
         if((newJointValue <= (joint->getDof(0)->getMax()*0.4)) && (newJointValue >= (joint->getDof(0)->getMin()*0.4))){
             joint->getDof(0)->setValue(newJointValue);
             update(robot);
-           
-            CollisionNode* other = world->getCollisionHandle()->getCollisionChecker()->getCollisionSkeletonNode(target);
             
             //check collision against child BodyNode
-            if(!checkCollisions || !world->getCollisionHandle()->getCollisionChecker()->getCollisionSkeletonNode(joint->getChildNode())->checkCollision(other, &contacts, contacts.size())){
+            if(!checkCollisions || !world->getCollisionHandle()->getCollisionChecker()->checkCollision(joint->getChildNode(), target, false)) {
                 ret = false;
             }
             else{
@@ -300,10 +298,9 @@ namespace planning {
     int Grasper::checkHandCollisionCount(){
         vector<Contact> contacts(10);
         int count = 0;
-        CollisionNode* other = world->getCollisionHandle()->getCollisionChecker()->getCollisionSkeletonNode(objectNode);
         for(list<kinematics::Joint*>::iterator loc = joints.begin(); loc != joints.end(); loc++){
              kinematics::Joint *j(*loc);
-            count += (world->getCollisionHandle()->getCollisionChecker()->getCollisionNode(j->getChildNode())->checkCollision(other, &contacts, contacts.size()) > 0);
+            count += world->getCollisionHandle()->getCollisionChecker()->checkCollision(j->getChildNode(), objectNode, false);
         }
         return count;
     }
