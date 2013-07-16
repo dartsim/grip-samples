@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(grip-samples)
 
 set(GRIPS_MAJOR_VERSION "2")
-set(GRIPS_MINOR_VERSION "4")
+set(GRIPS_MINOR_VERSION "5")
 set(GRIPS_PATCH_VERSION "0precise")
 set(PKG_DESC "GRIP Samples")
 set(GRIPS_VERSION "${GRIPS_MAJOR_VERSION}.${GRIPS_MINOR_VERSION}.${GRIPS_PATCH_VERSION}")
