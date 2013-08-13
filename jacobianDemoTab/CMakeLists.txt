@@ -40,9 +40,9 @@ find_package(DARTExt REQUIRED)
 find_package(DART REQUIRED CONFIG)
 find_package(GRIP REQUIRED)
 
-include_directories(${DARTExt_INCLUDEDIR})
-include_directories(${DART_INCLUDEDIR})
-include_directories(${GRIP_INCLUDEDIR})
+include_directories(${DARTExt_INCLUDE_DIRS})
+include_directories(${DART_INCLUDE_DIRS})
+include_directories(${GRIP_INCLUDE_DIRS})
 link_directories(${DART_LIBRARY_DIRS})
 link_directories(${GRIP_LIBRARY_DIRS})
 
