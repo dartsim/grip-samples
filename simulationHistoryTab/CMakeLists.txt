@@ -41,11 +41,9 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX}/share/dart")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX}/share/grip")
 
-find_package(DARTExt REQUIRED)
 find_package(DART REQUIRED CONFIG)
 find_package(GRIP REQUIRED)
 
-include_directories(${DARTExt_INCLUDE_DIRS})
 include_directories(${DART_INCLUDE_DIRS})
 include_directories(${GRIP_INCLUDE_DIRS})
 link_directories(${DART_LIBRARY_DIRS})
@@ -79,7 +77,7 @@ if (wxWidgets_FOUND)
   endif()
 
   # Link to GRIP, DART and wxWidgets
-  target_link_libraries (SimulationHistoryTab ${GRIP_LIBRARIES} ${DART_LIBRARIES} ${DARTExt_LIBRARIES} ${wxWidgets_LIBRARIES} )
+  target_link_libraries (SimulationHistoryTab ${GRIP_LIBRARIES} ${DART_LIBRARIES} ${wxWidgets_LIBRARIES} )
 
 else (wxWidgets_FOUND)
   message ("wxWidgets not found!")
