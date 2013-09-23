@@ -43,15 +43,15 @@
 #include <GUI/GUI.h>
 #include <iostream>
 
-#include <collision/CollisionDetector.h>
-#include <dynamics/SkeletonDynamics.h>
-#include <dynamics/ConstraintDynamics.h>
-#include <kinematics/ShapeBox.h>
-#include <kinematics/Dof.h>
-#include <kinematics/Joint.h>
-#include <planning/PathPlanner.h>
-#include <planning/PathShortener.h>
-#include <planning/PathFollowingTrajectory.h>
+#include <dart/collision/CollisionDetector.h>
+#include <dart/dynamics/Skeleton.h>
+#include <dart/constraint/ConstraintDynamics.h>
+#include <dart/dynamics/BoxShape.h>
+#include <dart/dynamics/GenCoord.h>
+#include <dart/dynamics/Joint.h>
+#include <dart/planning/PathPlanner.h>
+#include <dart/planning/PathShortener.h>
+#include <dart/planning/PathFollowingTrajectory.h>
 #include "Controller.h"
 
 using namespace std;
@@ -137,14 +137,14 @@ void planningTab::GRIPEventSceneLoaded() {
   const string armNodes[] = {"Body_RSP", "Body_RSR", "Body_RSY", "Body_REP", "Body_RWY", "Body_RWP"}; 
   mArmDofs.resize(6);
   for(int i = 0; i < mArmDofs.size(); i++) {
-    mArmDofs[i] = mRobot->getNode(armNodes[i].c_str())->getDof(0)->getSkelIndex();
+    mArmDofs[i] = mRobot->getBodyNode(armNodes[i])->getParentJoint()->getGenCoord(0)->getSkeletonIndex();
   }
 }
 
 
 /// Before each simulation step we set the torques the controller applies to the joints
 void planningTab::GRIPEventSimulationBeforeTimestep() {
-  Eigen::VectorXd torques = mController->getTorques(mRobot->getPose(), mRobot->getPoseVelocity(), mWorld->getTime());
+  Eigen::VectorXd torques = mController->getTorques(mRobot->get_q(), mRobot->get_dq(), mWorld->getTime());
   mRobot->setInternalForces(torques);
 }
 
@@ -188,8 +188,8 @@ void planningTab::onButtonSetPredefGoal(wxCommandEvent & _evt) {
 /// Move objects to obstruct the direct path between the predefined start and goal configurations
 void planningTab::onButtonRelocateObjects(wxCommandEvent & _evt) {
 
-  dynamics::SkeletonDynamics* orangeCube = mWorld->getSkeleton("orangeCube");
-  dynamics::SkeletonDynamics* yellowCube = mWorld->getSkeleton("yellowCube");
+  dart::dynamics::Skeleton* orangeCube = mWorld->getSkeleton("orangeCube");
+  dart::dynamics::Skeleton* yellowCube = mWorld->getSkeleton("yellowCube");
   
   if(!orangeCube || !yellowCube) {
     cout << "Did not find orange or yellow object. Exiting and no moving anything" << endl;
@@ -197,10 +197,10 @@ void planningTab::onButtonRelocateObjects(wxCommandEvent & _evt) {
   }
   
   Eigen::Matrix<double, 6, 1> pose; 
-  pose << 0.30, -0.30, 0.83, 0.0, 0.0, 0.0;
-  orangeCube->setPose(pose);
-  pose << 0.30, -0.30, 0.935, 0.0, 0.0, 0.0;
-  yellowCube->setPose(pose);
+  pose << 0.0, 0.0, 0.0, 0.30, -0.30, 0.83;
+  orangeCube->setConfig(pose);
+  pose << 0.0, 0.0, 0.0, 0.30, -0.30, 0.935;
+  yellowCube->setConfig(pose);
 
   viewer->DrawGLScene();
 }
@@ -226,20 +226,20 @@ void planningTab::onButtonShowGoal(wxCommandEvent & _evt) {
 void planningTab::onButtonPlan(wxCommandEvent & _evt) {
 
   // Store the actuated joints (all except the first 6 which are only a convenience to locate the robot in the world)
-  std::vector<int> actuatedDofs(mRobot->getNumDofs() - 6);
+  std::vector<int> actuatedDofs(mRobot->getNumGenCoords() - 6);
   for(unsigned int i = 0; i < actuatedDofs.size(); i++) {
     actuatedDofs[i] = i + 6;
   }
   
   // Deactivate collision checking between the feet and the ground during planning
-  dynamics::SkeletonDynamics* ground = mWorld->getSkeleton("ground");
-  mWorld->getCollisionHandle()->getCollisionChecker()->disablePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
-  mWorld->getCollisionHandle()->getCollisionChecker()->disablePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
+  dart::dynamics::Skeleton* ground = mWorld->getSkeleton("ground");
+  mWorld->getCollisionHandle()->getCollisionChecker()->disablePair(mRobot->getBodyNode("Body_LAR"), ground->getRootBodyNode());
+  mWorld->getCollisionHandle()->getCollisionChecker()->disablePair(mRobot->getBodyNode("Body_RAR"), ground->getRootBodyNode());
   
   // Define PD controller gains
-  Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mRobot->getNumDofs());
-  Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mRobot->getNumDofs());
-  Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mRobot->getNumDofs());
+  Eigen::VectorXd kI = 100.0 * Eigen::VectorXd::Ones(mRobot->getNumGenCoords());
+  Eigen::VectorXd kP = 500.0 * Eigen::VectorXd::Ones(mRobot->getNumGenCoords());
+  Eigen::VectorXd kD = 100.0 * Eigen::VectorXd::Ones(mRobot->getNumGenCoords());
 
   // Define gains for the ankle PD
   std::vector<int> ankleDofs(2);
@@ -252,30 +252,30 @@ void planningTab::onButtonPlan(wxCommandEvent & _evt) {
   mRobot->setConfig(mArmDofs, mStartConf);
 
   // Create controller
-  mController = new planning::Controller(mRobot, actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
+  mController = new Controller(mRobot, actuatedDofs, kP, kD, ankleDofs, anklePGains, ankleDGains);
 
   // Call path planner
-  planning::PathPlanner<> pathPlanner(*mWorld);
+  dart::planning::PathPlanner<> pathPlanner(*mWorld);
   std::list<Eigen::VectorXd> path;
   if(!pathPlanner.planPath(mRobot, mArmDofs, mStartConf, mGoalConf, path)) {
     std::cout << "Path planner could not find a path." << std::endl;
   }
   else {
     // Call path shortener
-    planning::PathShortener pathShortener(mWorld, mRobot, mArmDofs);
+    dart::planning::PathShortener pathShortener(mWorld, mRobot, mArmDofs);
     pathShortener.shortenPath(path);
 
     // Convert path into time-parameterized trajectory satisfying acceleration and velocity constraints
     const Eigen::VectorXd maxVelocity = 0.6 * Eigen::VectorXd::Ones(mArmDofs.size());
     const Eigen::VectorXd maxAcceleration = 0.6 * Eigen::VectorXd::Ones(mArmDofs.size());
-    planning::Trajectory* trajectory = new planning::PathFollowingTrajectory(path, maxVelocity, maxAcceleration);
+    dart::planning::Trajectory* trajectory = new dart::planning::PathFollowingTrajectory(path, maxVelocity, maxAcceleration);
     std::cout << "-- Trajectory duration: " << trajectory->getDuration() << endl;
     mController->setTrajectory(trajectory, 0.0, mArmDofs);
   }
   
   // Reactivate collision of feet with floor
-  mWorld->getCollisionHandle()->getCollisionChecker()->enablePair(mRobot->getNode("Body_LAR"), ground->getNode(1));
-  mWorld->getCollisionHandle()->getCollisionChecker()->enablePair(mRobot->getNode("Body_RAR"), ground->getNode(1));
+  mWorld->getCollisionHandle()->getCollisionChecker()->enablePair(mRobot->getBodyNode("Body_LAR"), ground->getRootBodyNode());
+  mWorld->getCollisionHandle()->getCollisionChecker()->enablePair(mRobot->getBodyNode("Body_RAR"), ground->getRootBodyNode());
 }
 
 // Local Variables:

@@ -42,8 +42,11 @@
 #include <vector>
 #include <Tabs/GRIPTab.h>
 
-namespace planning { class Controller; }
-namespace dynamics { class SkeletonDynamics; }
+namespace dart {
+  namespace dynamics { class Skeleton; }
+}
+
+class Controller;
 
 class planningTab : public GRIPTab
 {
@@ -64,9 +67,9 @@ public:
   void onButtonShowGoal(wxCommandEvent & _evt);
   void onButtonPlan(wxCommandEvent & _evt);
 
-  planning::Controller* mController;
+  Controller* mController;
   
-  dynamics::SkeletonDynamics* mRobot;
+  dart::dynamics::Skeleton* mRobot;
   std::vector<int> mArmDofs;
   Eigen::VectorXd mStartConf;
   Eigen::VectorXd mGoalConf;
